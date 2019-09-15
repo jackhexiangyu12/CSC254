@@ -3,13 +3,11 @@ import sys
 def gen(n):
     result = []
 
-    tmp = []
-    tmp.append('')
+    tmp = ['']
     result.append(tmp)
 
     if n > 0:
-        tmp = []
-        tmp.append('(.)')
+        tmp = ['(.)']
         result.append(tmp)
 
         for i in range(2,n+1):
