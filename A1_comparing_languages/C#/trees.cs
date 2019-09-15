@@ -10,13 +10,11 @@ public class Trees {
         result.Add(tmp);
 
         if (n > 0) {
-
             tmp = new List<string>();
             tmp.Add("(.)");
             result.Add(tmp);
 
             for (int i = 2; i < n+1; i++) {
-
                 tmp = new List<string>();
                 for (int j = 0; j < i; j++) {
                     foreach (string left in result[j]) {
@@ -25,11 +23,9 @@ public class Trees {
                         }
                     }
                 }
-
                 result.Add(tmp);
             }
         }
-
         return result[result.Count - 1];
     }
 
