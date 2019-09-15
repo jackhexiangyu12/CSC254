@@ -66,3 +66,4 @@ We like Python most and declarative languages least due to similar reasons in "W
 
 **Did you find iterators to be helpful? **
 
+Iterators is very helpful while manipulating with lists. And the search mechanism in Prolog appears to be a great substitution of iterators. 
