@@ -1,1 +1,1 @@
-# A1_compariing_languages
+# A1_comparing_languages
