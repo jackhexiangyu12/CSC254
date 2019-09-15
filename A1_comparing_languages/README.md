@@ -64,6 +64,6 @@ With small `num_of_nodes`, there is not significant differences in speed.
 
 We like Python most and declarative languages least due to similar reasons in "What was easy? What was hard?". 
 
-**Did you find iterators to be helpful? **
+**Did you find iterators to be helpful?**
 
 Iterators is very helpful while manipulating with lists. And the search mechanism in Prolog appears to be a great substitution of iterators. 
