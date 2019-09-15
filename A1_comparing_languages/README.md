@@ -48,9 +48,9 @@ Replace `num_of_nodes` with any integer greater than or equal to zero.
 
 ## Programming Experience
 
-**What was easy?  What was hard?**
+**What was easy? What was hard?**
 
-Generally speaking, imperative languages are easier to implement compare to declarative languages. 
+Generally speaking, imperative languages are easier to implement compare to declarative languages. We spent approximately two hours for each imperative language, but 7 hours for each declarative language. 
 
 Ada, C# and Python are ranked according to their grammars. Ada is the most complicated one and Python is the easiest and most familiar one. 
 
