@@ -48,7 +48,7 @@ gen(I, Target, Result) :-
         member(L, Left),
         member(R, Right),
 
-        % Add leftsubtree and rightsubtree to root
+        % Add leftsubtree and rightsubtree to root and store in ResultNew
         add_to_root(L, R, A)
     ), ResultNew),
 
