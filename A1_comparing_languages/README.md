@@ -43,7 +43,8 @@ Replace `num_of_nodes` with any integer greater than or equal to zero.
 
 ## Features
 
-Our implementation in Prolog could print all possible trees without typing semicolons at the interpreter prompt. 
+- Since we use dynamic programming (except for OCaml) and store trees as list of strings, our implementations perform better in both runtime and memory consumption. 
+- Our implementation in Prolog can print all possible trees without typing semicolons at the interpreter prompt. 
 
 ## Programming Experience
 
