@@ -1,0 +1,713 @@
+Introduction and overview of compilation (8-28 and 9-4, 2019)
+
+    << Circulate sign-up sheets for workshops >>
+
+    Note that workshops will start NEXT WEEK (after class a week from today)
+    --> bring laptops to workshop
+
+========================================
+
+<<  Brainstorm names of programming languages; list by category     >>
+<<  How many students have programmed in each language?             >>
+<<  Who knows C++?  Lisp/Scheme?  SML/OCaml/Haskell/F#?  Ada?       >>
+<<  Perl/Python/Ruby?  JavaScript?  Rust?  Swift?  Scala?           >>
+
+Why are there so many programming languages?
+    evolution -- we've learned better ways of doing things over time
+    orientation toward special purposes
+    orientation toward special hardware
+    diverse ideas about what is pleasant to use
+    socio-economic factors: proprietary interests, commercial advantage
+
+What makes a language successful?
+    easy to learn (BASIC, LOGO, Scheme, Python)
+    easy to express things -- easy to use once fluent -- "powerful"
+        (C++, Haskell, Common Lisp, Perl, APL)
+    easy to implement (BASIC, Forth)
+    possible to compile to very good (fast/small) code (C, Fortran)
+    exceptionally good at something important (PHP, Ruby on Rails, R)
+    backing of a powerful sponsor (COBOL, Ada, Visual Basic, C#, Swift)
+    wide dissemination at minimal cost (Pascal, Java, Python, Ruby)
+
+Why do we have programming languages? -- what is a language for?
+    abstraction of virtual machine -- way of specifying what you want
+    the hardware to do without getting down into the bits
+      * languages from the implementor's point of view
+    way of thinking -- way of expressing algorithms
+      * languages from the user's point of view
+
+    This course tries to balance coverage of these two angles.  We will
+    talk about language features for their own sake, and about how they
+    can be implemented.
+
+    Knuth: Computer Programming is the art of explaining to another
+    human being what you want the computer to do.
+
+Group languages as
+    imperative
+        von Neumann             (Fortran, Ada, Pascal, Basic, C, ...)
+        object-oriented         (Smalltalk, Eiffel, C++, Java, C#,
+                                    Swift, OCaml, ...)
+        scripting               (perl, Python, PHP, Ruby,
+                                    Javascript, Matlab, R, ...)
+    declarative
+        functional              (Scheme/Lisp, ML/OCaml/Haskell/F#)
+        logic, constraint-based (Prolog, OPS5, spreadsheet, XSLT)
+
+These aren't mutually exclusive.  Scala, for example, might be regarded
+as von Neumann, object-oriented, AND functional.
+Ruby might check all of those AND scripting.
+
+Imperative languages have historically dominated, usually, today, with
+object oriented features.  They will occupy the bulk of our attention
+this semester, but I'll be devoting one dedicated week and a lot of
+scattered time to functional languages, and a lot of the imperative
+material will be in OO or scripting contexts.  Moreover functional
+features (lambda expressions, functions as arguments & returns, list
+comprehensions, even continuations) are increasingly appearing in
+mostly-imperative languages (Scala, Swift, Ruby, Python, ...).
+
+Example of imperative v. functional paradigms: consider insertion sort.
+In no particular languages:
+
+imperative sort(A):
+    for i in len(A)-2 downto 0
+        v = A[i]
+        for j in i+1 to len(A)-1
+            // A[j..len(A)-1] is sorted
+            if A[j] > v break
+            A[j-1] = A[j]
+        A[j-1] = v
+
+functional sort(A):
+    if len(A) < 2 return A
+    else
+        let v be A[0] and R be A[1..]
+        return insert(v, sort(R))
+    where insert(v, S):
+        if len(S) == 0 return { v }
+        else
+            let w be S[0] and T be S[1..]
+            if v < w return v . S
+            else return w . insert(v, T)
+
+These implement the same algorithm, but
+(a) The functional version has no assignments.
+(b) The imperative version has a more obvious implementation.
+(c) when I wrote these in C and Scheme, I had to fix two bugs in the C
+    version, but the Scheme one ran the first time.
+
+======================================================
+ADMINISTRIVIA
+
+All course materials will be on the web; no handouts.
+The course home page is
+    http://www.cs.rochester.edu/u/scott/courses/254/home.shtml
+
+Log in and browse.  Pay particular attention to the course description,
+schedule, policies, and grading standards.
+
+Prerequisite: CSC 173 or equivalent; 252 preferred.  If you have not had
+252 you can get by, but read chapter 5 (on the web) on your own.
+
+This is mainly an undergrad course, required for the major, but it's
+also open to grad students, with a 400-level number.  Grad students will
+be expected to do some extra work, and will be graded separately.
+
+The text for the course is _Programming_Language_Pragmatics_, 4th
+edition.  Previous editions will not suffice.  So-called "supplemental"
+sections (some of which I'll be assigning) are available online at
+Elsevier's web site.
+
+I will attempt to spend class time on question answering, discussion,
+and problem solving, rather than lectures that duplicate the reading.
+So READ THE BOOK BEFORE CLASS, and be prepared to be called on!
+I will probably give a few quizes.  These will be patterned after the
+CYU questions in the text, so doing those as you read will be excellent
+preparation.
+
+Exams will be based on both the lecture material and the book.
+Assignments are on the schedule web page.
+
+The TAs and I will post announcements to Blackboard.  Everyone should
+check both announcements and discussions there every day; not everything
+will end up on the web.  Feel free to post questions and to answer any
+questions you see there.  If you don't know how to use Blackboard
+discussions, follow the link from the course site navigation bar and
+read the on-line documentation.
+
+Everyone will need a CSUG acct.  If you don't have one, contact one of
+the grad TAs.
+
+I keep these lecture notes on-line.  You can access them from the web
+site.  They're mostly plain ascii text.  Please read the README file
+carefully.
+
+If you find you are having difficulty in the course, please make use of
+the many resources available to help.  Talk to your fellow students, to
+the TAs, and to me.  If you feel the need for some extra assistance,
+check with the CSUG and CCAS tutoring services.
+
+----------------------------------------
+WORKSHOPS:
+
+We'll be doing workshops this fall.  The 5 UG TAs will be the leaders.
+Attendance is required for undergrads and recommended for graduate
+students.  We'll assignm slots according to the preferences on the forms
+you filled out.
+
+----------------------------------------
+ASSIGNMENTS:
+
+6 programming assignments planned:
+
+(1) familiarization assignment (combinatorial search) in
+several different languages.
+(2) syntax error recovery (recursive descent review)
+(3) interpretation (tree traversal, OCaml)
+(4) cross indexer (scoping, scripting)
+(5) concurrency (probably in Java or C#)
+(6) generics
+
+These will be quite different from the assignments given by Prof. Ding
+last year.  They will be similar  BUT NOT THE SAME as assignments I've
+used in the past.
+
+Class and workshop attendance is mandatory; active participation is
+expected, and will count for 10-15% of your final grade.  ASK QUESTIONS!
+
+Expect to work hard in this course.  You won't have to write much more
+code than you did in 173, but much of what you write will be VERY
+tricky.  Don't count on being able to do things the night before; I
+won't accept late-discovered problems as an excuse.  Moreover, for each
+assignment there will be a "pre-assignment" whose goal is to force you
+to *look* at things early.  This will be trivial (literally), but will
+constitute a non-trivial part of your final course grade (~10%).
+
+COLLABORATION IS ENCOURAGED, but you have to work through everything
+yourself -- share ideas, but not code or write-ups.  You can work
+through something with a friend on a whiteboard, but then you have to
+erase the whiteboard and re-generate the ideas yourself from memory --
+no written or electronic notes from brainstorming sessions.  I have no
+qualms about giving everybody a high grade if they deserve it, so you
+don't have to compete.  In fact if you cooperate you're likely to learn
+more and do better.
+
+*** SEE FULL DETAILS ON ACADEMIC HONESTY ON THE WEB PAGE ***
+
+Please note that copying of any sort is EXPRESSLY FORBIDDEN, unless you
+have permission, and clearly indicate in your README file which parts
+were copied and from whom.  You'll get zero points for those parts, but
+you may get the satisfaction of being able to see the whole thing work.
+
+Any apparent cases of collaboration on exams, or of unreported
+collaboration on assignments (artifacts), will be handled under the
+College policy on academic dishonesty.  Sadly, I tend to have these
+every semester.  Don't be one of them!
+
+Exams count for about 40% of the grade, and they are individual effort
+only.  The midterm will be Monday October 21, in class.  The
+(cumulative) final will be Tuesday afternoon, Dec. 17, during exam week.
+
+NO LATE ASSIGNMENTS WILL BE ACCEPTED.  EXCEPTIONS ONLY UNDER THE
+MOST DIRE OF CIRCUMSTANCES.  TURN IN WHAT YOU HAVE; I'M GENEROUS
+WITH PARTIAL CREDIT.
+
+In addition to workshops, the TAs will have regular office hours;
+see the web site for times.  For me, stop by whenever I'm around, or
+send email for an appointment.
+
+Tentative grading summary:
+10% trivia assignments
+35-40% main assignments
+20% midterm exam
+20% final exam
+10-15% class/workshop participation, quizes
+
+-----------------------------------
+
+First assignment (for Wednesday):
+(1) get a copy of the book
+(2) read (all of) chapter 1
+(3) make sure your CSUG account is up and working
+(4) Find the Blackboard site for the course.  Find and complete
+    "Initial Trivia assignment (T0)".
+(5) check out the "Unix tools" assignment
+    (.../254/assignments/unix_tools.html) and work through it if it
+    isn't all familiar material.
+
+Note: Item 4 is your first "pre-assignment".  You'll lose points if you
+haven't taken care of it by Wednesday Sept. 4.
+
+======================================================
+Language implementation: interpreters & compilers
+
+Consider our insertion sort in C:
+
+void sort(int A[]) {
+    for (int i = len(A)-2; i >= 0; i--) {
+        int v = A[i];
+        int j;
+        for (j = i+1; j < len(A); j++) {
+            /* A[j..] is sorted */
+            if (A[j] > v) break;
+            A[j-1] = A[j];
+        }
+        A[j-1] = v;
+    }
+}
+
+If we store this in a file, it's about 275 characters of text.
+How do you _execute_ that?  Not immediately obvious, certainly, and a
+lot less obvious if it's 275 million characters.
+
+But suppose it's a tree data structure in memory:
+
+<< draw AST (abstract syntax tree) >>
+
+Hopefully most of you believe that (given some time) you could write a
+program that would take any such tree and "execute" it.  That's what an
+INTERPRETER does: after first translating the source program into a data
+structure that makes its meaning more obvious, it walks the data
+structure (in this case, a tree) and does "the obvious."
+Most scripting languages (Perl, Python, Ruby, Javascript) are
+implemented in roughly this fashion.
+
+    source program ==\
+                      > interpreter ===> output
+             input ==/
+
+Note that the interpreter stays around at execution time.
+Comparatively simple.  Very flexible.  But generally kind of slow.
+
+At the other extreme (as in, say, Fortran or C) we can translate a
+program to machine language ahead of time.
+
+    source program ===> compiler ===> target program
+
+    AND
+
+    input ===> target program ===> output
+
+A common intermediate is to employ a non-machine-language _intermediate
+form_ (AST or other data structure) and to separate the creation of the
+internal form from the "execution" part.  Java does this:
+
+    source program ===> compiler ===> intermediate program
+
+AND THEN EITHER
+
+    intermediate program ==\
+                            > interpreter ===> output
+                   input ==/
+
+OR
+
+    intermediate program ===> compiler 2 ===> target program
+
+    AND
+
+    input ===> target program ===> output
+
+The former option (final step is interpreter) was common in early Java
+implementations.  Most now do the second option: "just-in-time" (JIT)
+compilation.  Advantages
+
+  - Intermediate program (Java byte code) is significantly smaller than
+    textual source: good for shipping over the web.
+
+  - JIT compilation is faster than source-to-machine translation,
+    because the intermediate program has lots of semantic information
+    built in (doesn't have to be figured out again).
+
+  - Intermediate program is completely portable and self-contained:
+    "run anywhere" on VIRTUAL MACHINE.
+
+SO:
+Compilation & interpretation are more shades of gray than distinct
+alternatives.
+
+In some systems, you'll see "pre-processing" prior to compilation or
+interpretation.  The key difference between pre-processing and
+compilation is that compilation entails semantic *understanding* of
+what is being processed; pre-processing does not.  A compiler
+produces either error messages or ouput that will pass through
+further steps -- more compilation, assembly, interpretation,
+execution -- without syntactic or static semantic errors.  A
+pre-processor will often let errors through.  A compiler hides
+further steps; a pre-processor does not.
+
+How you view all this also depends on how deep you look.
+In some sense, execution on a microcoded machine or a modern x86
+(with front-end translation) IS interpretation
+
+many compiled languages have interpreted pieces
+    e.g. printf in C
+most use "virtual instructions" -- library routines that are called
+        automatically by the compiler
+    math
+    I/O
+    string manipulation
+    set and map operations
+some compilers produce nothing but virtual instructions
+    e.g. Pascal P-code, Java byte code, Microsoft CIL
+
+what makes compilation hard? -- late binding
+    names to objects -- scope rules
+    types to objects/names -- type rules
+    programs to code -- dynamic classes in Java, new functions
+        at run time in Scheme
+
+why might interpretation be desirable?
+    necessary for late binding, which may increase programmer productivity
+    small code size
+    good diagnostics
+    no (or reduced) compilation step -- fast startup from source code
+    (possibly) enhanced portability
+    automatic inclusion of the latest libraries
+
+commonly interpreted languages
+    Scheme
+    Prolog
+    Shell
+    most scripting languages (Python, Ruby, PHP, JavaScript)
+Compilers exist for some of these, but they aren't pure:
+selective compilation of compilable pieces and extra-sophisticated
+pre-processing of remaining source.  Interpretation (or dynamic
+compilation) of parts of code, at least, is still necessary for
+reasons above.
+
+unconventional compilers
+    text formatters
+    silicon compilers
+    database query language processors
+    XSLT
+
+[ bootstrapping: running a tool through itself to get a better version.
+[ - incremental development of self-hosting compilers
+[ - early Pascal distribution
+
+========================================
+
+phases of compilation:
+                                            character stream
+scanner (lexical analysis)
+                                            token stream
+parser (syntax analysis)
+    drives the whole process
+    (syntax-directed compilation)
+                                            parse tree
+                                            (concrete syntax tree)
+semantic analysis
+                                   FE       abstract syntax tree (AST)
+                                --------
+intermediate code generation       ME
+                                            intermediate form (IF)
+                                            of some sort
+optimization
+                                            modified IF
+                                --------
+target code generation             BE
+    assembler
+    relocatable
+    load-and-go (e.g. perl)
+                                            assembler or machine code
+                                            (or other target language)
+machine-specific optimization
+------
+symbol table
+
+difference between phases and passes
+some phases are grouped together into passes,
+and may not be clearly distinguished.
+Most compilers do not build an explicit parse tree.
+
+compiler families facilitated by front end / back end split:
+    N + M compilers instead of N * M
+
+automatic tools
+scanner                 -- usefulness not certain; definitely handy
+                           during language development
+parser                  -- big BIG win (and yet gcc reverted to [impure]
+                           recursive descent a few years ago -- mainly
+                           for quality of error messages, I think)
+attribute evaluator     -- big win for syntax-directed editors,
+                           incremental compilation, and language
+                           research; not used all that much in practice
+data-flow engine        -- can simplify global optimization
+affine math framework   -- great for loop optimizations
+code generator          -- great for portability; fairly widely used
+
+================================================
+More on the various phases:
+
+All phases rely on a symbol table that keeps track of all the identifiers
+in the program and what the compiler knows about them.  This symbol table
+may be retained (in some form) for use by a debugger or run-time
+optimizer, garbage collector, reflection mechanism, dynamic code
+generator, or virtual machine, even after normal compilation has completed.
+
+--------
+
+Scanning divides the program into "tokens", which are the smallest meaningful
+units.  This saves time, since character-by-character processing is slow
+and we can tune the scanner better if its job is simple.  It also avoids
+complexity (lots of it) in later stages: you can design a parser to take
+characters instead of tokens as input, but it isn't pretty.
+The scanner also typically
+    removes comments
+    produces a listing if desired
+    saves text of strings, identifiers, numbers
+    evaluates numeric constants (maybe)
+    tags tokens with line numbers, for good diagnostics in later phases
+
+Consider an (extremely simple) language to describe the input to a
+hand-held calculator.  Tokens for such a language might include:
+
+    id      = letter ( letter | digit ) *
+                [ except "read" and "write" ]
+    literal = digit digit *
+    ":=", "+", "-", "*", "/", "(", ")"
+    $$ [end of input / off]
+
+(These are regular expressions.)
+
+--------
+
+Parsing discovers the "context free" structure of the program.
+
+Mini theory lesson:
+
+Scanners and parsers are *recognizers* for regular and context-free
+languages, respectively.  Regular expressions and context-free grammars
+are *generators* for regular and context-free languages, respectively.
+The generator is what you want to sucinctly describe the language.  The
+recognizer is what you want to tell whether a given string is in the
+language.  Scanner and parser generators like lex and yacc, or antlr,
+transform a generator (RE, CFG) into a recognizer (scanner, parser).
+
+<< Who has had 280? >>
+[ scanning is recognition of a regular language, e.g. via DFA;
+parsing is recognition of a context-free language, e.g. via PDA ]
+
+Continuing the calculator example, let us suppose that
+
+All variables are integers.
+There are no declarations.
+The only statements are assignments, input, and output.
+Expressions get to use the four arithmetic operators and parentheses.
+Operators are left associative, with the usual precedence.
+There are no unary operators.
+
+Here's a grammar, in EBNF:
+
+    <pgm>           ->  <statement list> $$
+    <stmt list>     ->  <stmt list> <stmt> | E
+    <stmt>          ->  id := <expr> | read <id> | write <expr>
+    <expr>          ->  <term> | <expr> <add op> <term>
+    <term>          ->  <factor> | <term> <mult op> <factor>
+    <factor>        ->  ( <expr> ) | id | literal
+    <add op>        ->  + | -
+    <mult op>       ->  * | /
+
+The initial, "augmenting" production is for the parser's convenience.
+$$ is generated by the scanner; it isn't part of the user's program.
+
+You may recall from 173 that the "extra" levels of this grammar, and the
+choice of ordering within productions, serves to produce parse trees
+that capture precedence and associativity.
+
+By the way, there is an infinite number of grammars for any given
+language.  This is just one.
+
+[ FWIW, the above grammar is SLR(1), but not LL(1).  It can't be parsed
+[ top-down (e.g. by recursive descent).  Even though you're going to be
+[ using a recursive descent parser for the second assignment, I am using
+[ SLR(1) here because it's more "natural", and captures precedence and
+[ associativity more clearly.  See next set of notes for more on LL(1),
+[ SLR(1), etc.
+
+Using our grammar for the calculator language, consider the following
+input program to print the sum and average of two numbers:
+
+    read A
+    read B
+    sum := A + B
+    write sum
+    write sum / 2
+    $$
+
+There are 16 tokens in this program, which the scanner will pass on to
+the parser.  The parser will discover the structure of the program and
+build a parse tree:
+
+    << show >>
+
+--------
+
+Semantic analysis is the discovery of *meaning* in the program.
+The compiler actually does what is called STATIC semantic anaylsis.
+That's the meaning that can be figured out at compile time.
+Some things (e.g. array subscript out of bounds) can't be figured out until
+run time.  Things like that are part of the program's DYNAMIC semantics.
+The compiler has to generate code to perform dynamic checks at run time
+(or leave things unchecked).
+
+Static semantics includes things like
+    making sure identifiers are declared before use
+    type checking for assignments and operators
+    checking types and numbers of parameters to subroutines
+    making sure functions contain return statements
+    making sure there are no repeats among switch statement labels
+    and so on
+
+Semantic analysis for the calculator language is essentially
+non-existent.  Because it is such a brain-damaged example, there are
+very few things that CAN go wrong.  Since there are no branches in our
+control flow, however, we can check to make sure no variable is used
+before it is given a value, and that no variable is given a value that
+is never used.  (Note that this is not possible in a more general
+language, unless you impose restrictions on merging code paths, as Java
+and C# do.  A good compiler may catch some errors, even if it can't
+catch all of them.)
+
+ << show examples of use of uninitialized variable
+    and of variable with unused value (both at EOP and at overwrite) >>
+
+In addition to performing static checks, semantic analysis often
+simplifies the structure of the parse tree, getting rid of useless
+nodes, reducing the number of different kinds of nodes (e.g. expr v.
+term v. factor) and compressing vine-like list structures.
+
+Parse tree = concrete syntax tree.
+Abstract syntax tree (AST) is more useful to rest of compiler, but
+name is a mouthful.  We generally talk about the "parse tree" and the
+"syntax tree".  The latter is the AST.
+
+Annotations (decorations) on the nodes of a syntax tree contain
+information (e.g. types) required for semantic analysis.  As a practical
+matter, semantic checks may be performed (a) while parsing, (b) during a
+later, separate traversal of the parse tree (assuming the compiler
+actually builds that tree explicitly), or (c) during a traversal of the
+syntax tree (assuming the compiler builds *that*).  Real compilers
+vary.
+
+The syntax tree for our sum-and-average program might look like this:
+
+ << show.  include symbol table pointers.
+    in symbol table entries, indicate that A, B, and sum are all set
+    before use and used after setting >>
+
+Whenever we see an identifier during semantic analysis, we look it up in
+our symbol table.
+If it isn't there already, we add it.  For each symbol, we keep track of
+whether it has (a) no value, (b) an unused value, or (c) a used value.
+Initially, every variable has no value.
+Whenever we give a symbol a value we check to see if it already has an
+unused value.  If so, we print a warning message.  In either case, we note
+that it now has an unused value.
+Whenever we try to use a symbol's value we check to see if it currently
+has no value.  If so, we print an error message.  Otherwise, we note that
+it now has a used value.
+At the end of the program, we scan the whole symbol table to see if anything
+has an unused value.  If so, we print a warning message.
+
+--------
+
+After semantic analysis (assuming the program passes all checks), the
+compiler generates code in some intermediate form (IF).  Intermediate
+forms are often chosen for machine independence, ease of optimization,
+or compactness (these are somewhat contradictory).  They come in many
+varieties, sometimes categorized as
+    high level -- e.g., abstract syntax tree like Diana or GIMPLE
+    medium level -- e.g., JBC/CIL/web assembly, or control flow graph
+        with idealized assembler within basic blocks
+    low level -- typically the assembler of the target machine, or
+        something very close
+
+Many compilers move the code through more than one IF.  The organization
+shown above is common, and roughly matches gcc: the semantic analyzer
+generates a syntax tree (gcc uses a format called GIMPLE); intermediate
+code gen produces pseudo-assembler (gcc uses a language called RTL);
+final code gen produces real assembler.
+
+For intermediate code generation, a typical compiler will again traverse
+the syntax tree, producing additional decorations.  It can be hard to
+draw the line between the decorations that are for semantic analysis (figuring
+out what the program means) v. those that are for code generation (figuring
+out how it is supposed to work).  Decorations for code generation might
+(in a real compiler) include
+    sizes of variables
+    locations of variables in memory (absolute, or offset in stack frame)
+    whether values are known at compile time
+    statistics on the range of case statement labels
+    names and locations of temporary variables created to hold intermediate
+        results of complicated computations
+
+--------
+
+Optimization takes an intermediate-code program and produces another
+one that does the same thing faster, or in less space.  (The term is a
+misnomer; we just *improve* code).  Optimization phases are optional.
+Most compilers have multiple such phases, effecting various inter-related
+improvements.  You'll learn more about this if you take 255 (or read
+chapter 17 on the PLP CS).
+
+THIS IS WHERE THE COMPILER SPENDS MOST OF ITS TIME.
+ALSO THE PART THAT ACCOUNTS FOR MOST OF THE COMPILER'S SIZE AND COMPLEXITY.
+
+--------
+
+The target code generation phase produces assembly language or
+(sometimes) relocatable machine language.  Or -- in pedagogical
+environments, scripting languages, or JITing virtual machines --
+load-and-go absolute machine language.
+
+Certain machine-specific optimizations (use of special instructions or
+addressing modes, etc.) may be performed during or after target code
+generation.  In the organization described in chapter 17 of the book,
+register allocation and instruction scheduling happen after target code
+gen.
+
+For pedagogical purposes, if we don't do any optimization, we can
+essentially merge intermediate and target code generation.
+
+The target code generator will have to decide on how to use the
+resources of the target machine.  Certain registers may be dedicated to
+special purposes, for example.  The layout of main memory will have to
+be established.  Using standard x86-32 register conventions (but a very
+naive code generator), we might get the following code for our
+sum-and-average program:
+
+        .data
+    A:              .long   0
+    B:              .long   0
+    sum:            .long   0
+        .text
+    __start:
+         call    input
+         movl    %eax, A
+         call    input
+         movl    %eax, B
+         movl    A, %eax
+         movl    B, %ebx
+         addl    %ebx, %eax
+         movl    %eax, C
+         movl    C, %eax
+         push    %eax
+         call    output_int
+         addl    $4, %esp
+         movl    C, %eax
+         movl    $2, %ebx
+         cltd   
+         idivl   %ebx
+         push    %eax
+         call    output_int
+         addl    $4, %esp
+         leave
+         ret
+
+This is obviously not the best code for our program.  You can see where
+it came from, though.  Compilers without optimizers tend to produce code
+that is awful.  To do a good job with this language, we would want at
+least to apply a "peephole" optimizer to the assembly code.

@@ -1,0 +1,21 @@
+2.1
+
+(a) String in C = " (not(\,",nl) | \ not(nl,"))^* "
+(b) Comments in Pascal = (* (not(*) | *not()))^* *^+)
+(f) D -> 0|1|2|3|4|5|6|7|8|9
+    A -> 1|2|3|4|5|6|7|8|9
+    I -> AD^*|0
+    C -> 
+    F -> C.DD
+    S -> e|*S
+    N -> $SF
+
+2.9
+
+(b) S -> AX
+    A -> aA|e
+    X -> bAbAX|e
+
+2.12
+
+(a) more a than b

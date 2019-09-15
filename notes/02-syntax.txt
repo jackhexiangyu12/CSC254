@@ -1,0 +1,1246 @@
+Programming language syntax (9-09, 9-11, and 9-16, 2019)
+
+    T1 due last Friday (5pm on the 6th)
+    A1 due Sun 15 Sept, midnight
+    A2 will be assigned on Mon the 16th
+
+    Any questions on the assignment, the reading, or previous lectures?
+
+    *** Go to workshop!  (Remember, it's required)
+
+    Keep following the on-web schedule of reading.
+
+================================================
+SCANNING
+
+Scanner is responsible for
+    tokenizing source
+    removing comments
+    (sometimes) dealing with pragmas
+    saving text of identifiers, numbers, strings
+    saving source locations (file, line, column) for error messages
+
+    << show DFA for identifiers >>
+
+Scanners can be built by hand (ad hoc) or automatically from REs.
+Ad-hoc generally yields the fastest, most compact code by doing lots of
+special-purpose things, but good automatically-generated scanners come
+very close, and are easy to develop and change.
+
+Automatic tools build a DFA automatically from a set of regular
+expressions.  Specifically, they construct a machine that accepts
+the "language"
+    identifier | int const | real const | comment | symbol | ...
+We run the machine over and over to get one token after another.
+(Note that theoreticians use "language" to mean a set of strings --
+not nec. the valid programs of a programming language.)
+
+In other words, a real scanner accepts alternation of tokens, with a
+separate final state for each.
+
+Nearly universal rule:
+    always take the longest possible token from the input
+    thus foobar is foobar and never f or foo or foob
+    more to the point, 3.14159 is a real const and never 3, ., and 14159
+
+Regular expressions "generate" a regular language; DFAs "recognize" it.
+
+The standard Unix lex (flex) outputs C code; some other tools produce
+numeric tables that are read by a separate driver.
+The table stores the transition function as a two-dimensional array
+indexed by current state and input character, where the array entries
+specify the next state, and whether to keep scanning, return a token, or
+announce an error.
+
+Note that the rule about longest-possible tokens means you return
+only when the next character can't be used to continue the current
+token.  In this case, the next character will generally need to be
+saved for the next token.  In some cases you may need to peek at more
+than one character of lookahead in order to know whether to proceed.
+In Pascal, for example, when you had a 3 and you a saw a dot, did you
+proceed (in hopes of getting 3.14) or did you stop (in fear of getting 3..5)?
+In messier cases, you may not be able to get by with any fixed amount of
+lookahead.  In Fortran IV (c. 1962), for example, one had
+
+    DO 5 I = 1,25       loop
+    DO 5 I = 1.25       assignment
+    DO 5,I = 1,25       alternate syntax for loop, f77
+
+For most languages it suffices to remember we were in a potentially
+final state, and save enough information that we can back up to it if we
+get stuck later.  For some languages (famously, Fortran), unfortunately,
+that isn't enough.  Sometimes need semantic information in order to scan
+(yuck).
+
+--------------------------------------------------
+Scanner generators
+
+multi-step process
+    write REs by hand, including for whitespace and comments, but with
+        identifiers and reserve words (keywords) combined
+    build NFA from REs
+    build DFA from NFA
+    minimize DFA
+    add extra logic to
+        implement the longest-possible-token rule, with backup
+        discard white space and tokens (i.e., start over when you
+            realize that's what you found)
+        distinguish reserve words from identifiers
+        save text of "interesting" tokens
+        tag returned tokens with location and text
+
+| example 1: real numbers (no exponential notation)
+|     IN THE BOOK
+| 
+|     RN = d*(.d|d.)d*
+| 
+|     14-state NFA results from construction
+|     5-state subset DFA
+|     4-state minimal DFA
+
+example 2: character strings with optional backslash-escaped quotes
+
+    S = " ( [^\"] | \a )* "             "a" for anything
+
+    11-state NFA results from construction
+    6-state subset DFA
+    4-state minimal DFA
+
+Is DFA always smaller than equivalent NFA?
+No!  Quite the contrary.
+
+example 3: subset of (a|b|c)* in which some letter appears at least 3 times.
+
+    RE (one possibility):
+       (a|b|c)* ( (a|b)*c(a|b)*c(a|b)*c(a|b)*
+                | (c|b)*a(c|b)*a(c|b)*a(c|b)*
+                | (a|c)*b(a|c)*b(a|c)*b(a|c)* ) (a|b|c)*
+    exists an 8-state NFA
+    minimal DFA has 28 states
+
+But that NFA doesn't come from the standard construction!
+Are there any that _do_, and for which the DFA is bigger yet?
+Absolutely!
+
+example 4: subset of (0|1|2|3|4|5|6|7|8|9)* in which some digit appears
+at least 10 times.
+
+    minimal DFA has 10,000,000,001 states
+    one RE is
+    (0|1|2|3|4|5|6|7|8|9)*
+    (
+       ((1|2|3|4|5|6|7|8|9)* 0 (1|2|3|4|5|6|7|8|9)* 0
+        (1|2|3|4|5|6|7|8|9)* 0 (1|2|3|4|5|6|7|8|9)* 0
+        (1|2|3|4|5|6|7|8|9)* 0 (1|2|3|4|5|6|7|8|9)* 0
+        (1|2|3|4|5|6|7|8|9)* 0 (1|2|3|4|5|6|7|8|9)* 0
+        (1|2|3|4|5|6|7|8|9)* 0 (1|2|3|4|5|6|7|8|9)* 0 (1|2|3|4|5|6|7|8|9)*)
+     |
+       ((0|2|3|4|5|6|7|8|9)* 1 (0|2|3|4|5|6|7|8|9)* 1
+        (0|2|3|4|5|6|7|8|9)* 1 (0|2|3|4|5|6|7|8|9)* 1
+        (0|2|3|4|5|6|7|8|9)* 1 (0|2|3|4|5|6|7|8|9)* 1
+        (0|2|3|4|5|6|7|8|9)* 1 (0|2|3|4|5|6|7|8|9)* 1
+        (0|2|3|4|5|6|7|8|9)* 1 (0|2|3|4|5|6|7|8|9)* 1 (0|2|3|4|5|6|7|8|9)*)
+     | ...
+     |
+       ((0|1|2|3|4|5|6|7|8)* 9 (0|1|2|3|4|5|6|7|8)* 9
+        (0|1|2|3|4|5|6|7|8)* 9 (0|1|2|3|4|5|6|7|8)* 9
+        (0|1|2|3|4|5|6|7|8)* 9 (0|1|2|3|4|5|6|7|8)* 9
+        (0|1|2|3|4|5|6|7|8)* 9 (0|1|2|3|4|5|6|7|8)* 9
+        (0|1|2|3|4|5|6|7|8)* 9 (0|1|2|3|4|5|6|7|8)* 9 (0|1|2|3|4|5|6|7|8)*)
+    )
+    (0|1|2|3|4|5|6|7|8|9)*
+
+    anybody believe the automatically constructed NFA for that has 10
+    billion states?
+
+----------------------------------------
+Recall that real scanner accepts alternation of tokens, with a separate
+final state for each.  Scanner generator
+  - starts with NFAs for all the separate tokens
+  - creates a new start state with an e-transition to the start state of
+    each token NFA
+  - turns that into a DFA
+  - runs the minimization algorithm starting not with two classes (final
+    and non-final) but with K+1: non-final, final for token T1, final for
+    token T2, ..., final for token TK.
+
+Note also that the scanner is a subroutine ("function"), called by the
+parser.  In the standard compiler structure, the parser is the heart of
+the front end.
+
+----------------------------------------
+
+We can also build a RE from a DFA (as shown in Section 2.4.1 on the PLP
+companion site).  This completes a proof that the two notations are
+equally powerful.  Nobody does this in practice, however; it amounts to
+converting the computer-friendly notation into a human-friendly
+notation, and we usually want to go the other way.
+
+-------------------------------------------
+CONTEXT FREE GRAMMARS
+
+Here's a (bottom-up) grammar for a simple desk calculator language
+(from the intro lecture notes):
+
+    1   program       ->  stmt_list $$
+    2   stmt_list     ->  stmt_list stmt | E
+    3   stmt          ->  ID := expr | READ ID | WRITE expr
+    4   expr          ->  term | expr add_op term
+    5   term          ->  factor | term mult_op factor
+    6   factor        ->  ( expr ) | ID | LITERAL
+    7   add_op        ->  + | -
+    8   mult_op       ->  * | /
+
+Terminology:
+    CF grammar
+    symbols
+        terminals (tokens)
+        non-terminals
+    start symbol
+    production
+    derivation (see example below)
+        left-most
+        right-most (canonical)
+    sentential form
+    [ Useless symbols: non-terminals that can't derive a token string,
+    or tokens that can't be derived.  We will assume we have none of
+    these.  They can be detected and removed automatically and
+    efficiently. ]
+
+-------------------------------------------
+Consider the program
+    READ A
+    READ B
+    SUM := A + B
+    WRITE SUM
+    WRITE SUM / 2
+
+Derivation using the above grammar:
+
+program
+stmt_list $$
+stmt_list stmt $$
+stmt_list WRITE expr $$
+stmt_list WRITE term $$
+stmt_list WRITE term mult_op factor $$
+stmt_list WRITE term mult_op LITERAL $$
+stmt_list WRITE term / LITERAL $$
+stmt_list WRITE factor / LITERAL $$
+stmt_list WRITE ID / LITERAL $$
+stmt_list WRITE ID / LITERAL $$
+stmt_list stmt WRITE ID / LITERAL $$
+stmt_list WRITE expr WRITE ID / LITERAL $$
+stmt_list WRITE term WRITE ID / LITERAL $$
+stmt_list WRITE factor WRITE ID / LITERAL $$
+stmt_list WRITE ID WRITE ID / LITERAL $$
+stmt_list stmt WRITE ID WRITE ID / LITERAL $$
+stmt_list ID := expr WRITE ID WRITE ID / LITERAL $$
+stmt_list ID := expr add_op term WRITE ID WRITE ID / LITERAL $$
+stmt_list ID := expr add_op factor WRITE ID WRITE ID / LITERAL $$
+stmt_list ID := expr add_op ID WRITE ID WRITE ID / LITERAL $$
+stmt_list ID := expr + ID WRITE ID WRITE ID / LITERAL $$
+stmt_list ID := term + ID WRITE ID WRITE ID / LITERAL $$
+stmt_list ID := factor + ID WRITE ID WRITE ID / LITERAL $$
+stmt_list ID := ID + ID WRITE ID WRITE ID / LITERAL $$
+stmt_list stmt ID := ID + ID WRITE ID WRITE ID / LITERAL $$
+stmt_list READ ID ID := ID + ID WRITE ID WRITE ID / LITERAL $$
+stmt_list stmt READ ID ID := ID + ID WRITE ID WRITE ID / LITERAL $$
+stmt_list READ ID READ ID ID := ID + ID WRITE ID WRITE ID / LITERAL $$
+READ ID READ ID ID := ID + ID WRITE ID WRITE ID / LITERAL $$
+
+Each line is a sentential form.  By definition that's a string of
+grammar symtols that occurs in the derivation of some string of
+terminals from the start symbol.
+
+This is a "canonical" (right-most) derivation: at each step we have
+expanded the right-most non-terminal in the current sentential form.
+So each line is a "right sentential form."  As it turns out, bottom-up
+parsers tend to discover right-most derivations; top-down parsers tend
+to discover left-most derivations.
+
+------------------------------------------------
+A Little Theory
+
+By analogy to regular expressions and DFAs, a context-free grammar (CFG)
+is a *generator* for a CF language.  A parser is a language
+*recognizer*.  There is an infinite number of grammars for every
+context-free language.  Not all grammars are created equal, however.
+It turns out that for any CFG we can create a parser that runs in O(n^3)
+time.  There are two well-known parsing algorithms that permit this:
+Early's algorithm (~emulation of an NPDA), and the Cocke-Younger-Kasami
+(CYK) algorithm (dynamic programming).  O(n^3) time is clearly
+unacceptable for a parser in a compiler.  Fortunately, there are large
+classes of grammars for which we can build parsers that run in linear
+time.  The two most important classes are called LL and LR.
+
+LL stands for 'Left-to-right, Leftmost derivation'.
+LR stands for 'Left-to-right, Rightmost derivation'.
+
+I'm going to talk mostly about LL parsing, since that's what you're
+going to be using in your next assignment.  The LR class is larger, but
+most programming languages have LL grammars (or something close enough
+to use with a couple hacks), and LL parsing is generally simpler and
+easier to understand.
+
+You commonly see LL or LR (or whatever) written with a number in parentheses
+after it.  This number indicates how many tokens of look-ahead are required
+in order to parse.  Most real compilers use one token of lookahead.
+Some compilers (e.g., for Fortran) have hacks to get more lookahead in
+special cases.  The open-source compiler-compiler ANTLR is LL(k).
+
+LL parsers are also called 'top-down', or 'predictive' parsers.  LR
+parsers are also called 'bottom-up', or 'shift-reduce' parsers.  There
+are several important sub-classes of LR parsers, including SLR and
+LALR.  I won't be going into detail on the differences among them.
+
+  - Every LL(1) grammar is also LR(1), though right recursion in productions
+    (analogous to left recursion, discussed in more detail below) tends to
+    require very deep stacks and complicates semantic analysis.
+  - Most but not all LL(1) grammars are also LALR(1).
+  - Every CF *language* that can be parsed deterministically has an
+    SLR(1) grammar (which is automatically LALR(1) and LR(1)).
+  - Every deterministic CFL with the "prefix property" (no valid string
+    is a prefix of another valid string -- every language augmented with
+    an end-of-file marker fits the bill) has an LR(0) grammar, but it's
+    almost certainly too ugly to use.
+
+-------------------------------------------
+What makes a grammar "nice"?
+
+It's particularly important that it be UNAMBIGUOUS -- no two parse trees
+for the same string.  Consider what would have happened if bottom-up
+productions 4 and 5 were
+
+    expr          ->  factor | expr op expr
+
+    << show two parse trees for A - B - C >>
+
+Also nice if the parse trees reflect semantic structure, but that's not
+essential.  Our bottom-up calculator grammar nicely captures the notion
+of precedence:
+
+    << show bottom-up parse tree for 3 + 4 * 5 >>
+
+Consider what would have happened if productions 4 and 5 in the
+bottom-up grammar were
+
+    expr          ->  factor | expr op factor
+
+Also notice how it captures the notion of left associativity:
+
+    << show bottom-up parse tree for 10 - 4 - 3 >>
+
+Consider what would have happened if production 4 was
+
+    expr          ->  term | term add_op expr
+
+-------------------------------------------
+Here is an LL(1) (top-down) grammar for the same language:
+
+    1   program       ->  stmt_list $$
+    2   stmt_list     ->  stmt stmt_list | E
+    3   stmt          ->  ID := expr | READ ID | WRITE expr
+    4   expr          ->  term term_tail
+    5   term_tail     ->  add_op term term_tail | E
+    6   term          ->  factor fact_tail
+    7   fact_tail     ->  mult_op factor fact_tail | E
+    8   factor        ->  ( expr ) | ID | LITERAL
+    9   add_op        ->  + | -
+    10  mult_op       ->  * | /
+
+Like the bottom-up grammar, the top-down one captures precedence, but
+most people don't find it as pretty.  For one thing, the operands of a
+given operator aren't in a RHS together!  The simplicity of the parsing
+algorithm makes up for this weakness, however, at least in my opinion.
+Moreover the top-down grammar does *not* capture associativity: in order
+to parse top-down left-to-right, we end up with a tree that tends to
+associate to the right.  There's no getting around this in the parser.
+Instead, we have to take care (by hand) to make sure that the *syntax
+tree* reflects associativity correctly.
+
+===========================================
+TOP-DOWN AND BOTTOM-UP PARSING
+
+*** A LL family parser builds a leftmost derivation from the top down.
+*** A LR family parser builds a rightmost derivation from the bottom up.
+
+How do we parse a string with the top-down grammar?  You can get the general
+idea by building the parse tree incrementally by hand:
+
+We start at the top and *predict* needed productions on the basis of
+the current left-most non-terminal in the tree and the current input token.
+
+Consider our example program again:
+
+    read A
+    read B
+    sum := A + B
+    write sum
+    write sum / 2
+
+    << walk through a trace, building the parse tree again >>
+
+    << put LR grammar back up and informally walk through a bottom-up
+       trace for comparison -- see diagram >>
+
+-------------------------------------------
+LL PARSING and RECURSIVE DESCENT
+
+We can formalize top-down parsing in two ways.  The first is to
+build a RECURSIVE DESCENT PARSER.  The second is to build a PARSE TABLE
+and a DRIVER.  (There is a direct analogy to the nested case statements
+v. table and driver approaches to building a scanner).  We'll consider
+the table-driven option more in a bit.
+
+If you took 173 you probably saw recursive descent.  The RD parser had a
+routine (call it match) that took a token name as argument and read a
+matching token from the input stream, or announced an error condition if
+it couldn't.  It also defined a subroutine for each non-terminal.  We
+can illustrate recursive descent with routines for the toy calculator
+language.
+
+The parser begins by calling the following subroutine:
+
+    procedure pgm
+        case input_token of
+            id, read, write, $$ : stmt_list; match ($$)
+            else                  error
+
+Some of the other subroutines follow:
+
+    procedure stmt_list
+        case input_token of
+            id, read, write : stmt; stmt_list
+            $$              : skip // epsilon
+            else              error
+
+    procedure stmt
+        case input_token of
+            id    : match (id); match (:=); expr
+            read  : match (read); match (id)
+            write : match (write); expr
+            else    error
+
+    procedure expr
+        case input_token of
+            id, literal, ( : term; term_tail
+            else             error
+
+    procedure term
+        case input_token of
+            id, literal, ( : factor; fact_tail
+            else             error
+
+    procedure term_tail
+        case input_token of
+            +, -                   : add_op; term; term_tail
+            ), id, read, write, $$ : skip // epsilon
+            else                     error
+
+    etc.
+
+-------------------------------------------
+PREDICT Sets
+
+So how do we know what to put on the case statement labels?  The idea
+is: if a rhs can start with a given token, the appearance of that token
+*predicts* its rhs.  If the rhs is epsilon (or something that can derive
+epsilon), any token that can follow the lhs anywhere in the grammar
+predicts the epsilon production.  An LL(1) parser generator constructs
+these "predict sets" for you.  We'll consider the algorithm in a bit.
+It depends on the following definitions.
+
+    FIRST(alpha) == {a : alpha =>* a beta}
+    FOLLOW(A) == {a : S =>+ alpha A a beta}
+    PREDICT(A -> alpha) == FIRST(alpha)
+        U (if alpha =>* epsilon then FOLLOW(A) ELSE NULL)
+
+The calculator language is simple enough that one can figure these out
+more or less by inspection.  "Real" languages are too complex for that
+to be a reasonable task.  We need an algorithm (stay tuned).
+
+[NB: it is conventional in general discussions of grammars to use
+    lower case letters near the beginning of the alphabet for terminals
+    lower case letters near the end of the alphabet for strings of terminals
+    upper case letters near the beginning of the alphabet for non-terminals
+    upper case letters near the end of the alphabet for arbitrary symbols
+    greek letters for arbitrary strings of symbols]
+
+===========================================
+MAKING A GRAMMAR LL
+
+    << somebody give me a reason why the original calculator grammar was
+    not LL(1) >>
+
+left recursion -- convert to right recursion:
+    example
+        id_list => id | id_list , ID
+    equivalently
+        id_list => ID id_list_tail
+        id_list_tail => , ID id_list_tail | epsilon
+
+    we can get rid of all left recursion mechanically in any grammar
+
+common prefixes -- left-factor:
+    example
+        stmt => ID := expr | ID ( arg_list )
+    equivalently
+        stmt => ID id_stmt_tail
+        id_stmt_tail => := expr | ( arg_list)
+
+    as with eliminating left-recursion, we can left-factor mechanically
+
+Note that eliminating left recursion and common prefixes does NOT make
+a grammar LL.  There are infinitely many non-LL LANGUAGES, and the
+mechanical transformations work on them just fine.  The few that
+arise in practice, however, can generally be handled with kludges.
+A famous example was the if-then-else statements of Algol-60 and
+Pascal.  Languages since 1970 have fixed that with 'elsif' and
+'endif'/'fi'.
+
+----------------------------------------
+SYNTAX ERROR RECOVERY
+
+Panic mode
+    *very* simplistic -- back out to some standard "well-defined" place,
+    delete tokens until you can accept what comes next, and continue.
+    Works best in languages without much structure (e.g. Fortran 77)
+
+Phrase-level
+    A little smarter.  Defines a *set* of well-defined places to back
+    out to: e.g. end of current expression, statement, or declaration.
+
+    Wirth formalized a nice way to handle this for recursive descent
+    parsers: on a token mismatch, insert what you expect.  On a null
+    prediction, delete tokens until you see something in the FIRST or
+    FOLLOW set of the current non-terminal (the one your recursive
+    descent routine is named after), then retry the current routine or
+    return, respectively.
+
+    We can use exceptions to make the code a bit cleaner (error recovery
+    logic confined to just a few of the recursive descent routines).
+    On a token mismatch we still insert what we expect.  On a null
+    prediction, however (no matching label in switch), we throw
+    syntax_error.  We put handlers in some subset of RD routines --
+    "phrases" in the grammar.  E.g.:
+
+    procedure statement
+        try
+            ...             -- code to parse a statement
+        except when syntax_error =>
+            loop
+                if next_token in FIRST(statement)
+                    statement       -- try again
+                    return
+                elsif next_token in FOLLOW(statement)
+                    return          -- caller can probably make progress
+                else get_next_token
+
+    This code does only deletions, but (as Wirth suggested), we have
+    match(tok) "insert" tok if it doesn't see it.  Specifically: print
+    an error message and return, without telling the scanner to get
+    another token, and without throwing syntax_error.
+
+NB: accepting a token in FIRST(statement) and restarting may or may not
+be a good idea.  It's always a good idea in Wirth's algorithm, because
+we detect errors only at the beginning of the RD routine.  But with
+exceptions we may land in the handler halfway through the construct (in
+this case statement).  At that point we may have already accepted a big
+chunk of the statement.  Starting over implicitly means silently
+ignoring what we've seen of the statement so far.  It may be better just
+to delete to what we hope is the end.
+
+Fancier strategies are also possible.  Fischer, Milton, and Quiring
+developed a particularly pretty "tunable", locally-least-cost recovery
+mechanism for table-driven LL(1) (see the book).
+
+-------------------------------------------
+The Immediate Error Detection problem
+
+Example from the book, in the calculator language:
+
+Y := (A * X X*X) + (B * X*X) + (C * X)
+           ^ There's a problem here (missing '*' in polynomial).
+             Can we tell?
+
+When we're at the point shown in the parse, what recursive descent
+routines are active?
+
+                    (dot shows where we are inside)
+    program                 P -> . SL $$
+    stmt_list               SL -> . S SL
+    stmt                    S -> id := . E
+    expr                    E -> . T TT
+    term                    T -> . F FT
+    factor                  F -> ( . E )
+    expr                    E -> . T TT
+    term                    T -> F . FT
+    factor_tail             FT -> * F . FT
+    factor_tail             FT -> ?
+
+Now ID can follow expr in some programs (e.g. A := B C := D), and an
+expr can end with a factor_tail, so ID is in FOLLOW of factor_tail.  And
+since factor_tail and term_tail can generate epsilon, the "obvious"
+thing is to return from FT twice, return from T (which thinks it's
+done); call from E to TT; return from TT; and return to F ** all without
+detecting an error of any kind **.  At this point we'll (finally) get a
+mismatch between ID and ).  Unfortunately we won't have much information
+to work with at that point, and won't be able to make as good a
+recovery as we would have liked.
+
+Specifically: match will insert a right paren, allowing F to complete
+and return.  T will call FT, which will see X on the input, which is in
+FOLLOW(FT), so it will predict and epsilon production and return,
+allowing T to return.  E will likewise call TT, which predicts epsilon
+and returns, allowing E to return, at which point S will complete and
+return, allowing SL to make a recursive call.  Now we have
+
+    X*X) + (B * X*X) + (C * X)
+
+on the input.  SL will predict S -> id := E
+We'll match id, will insert :=, call E, then T, then F.
+F will predict F -> id, match X, then return all the way back to
+    SL -> S . SL
+at which point we'll make another recursive call to SL and run into
+trouble with ) on the input.  We'll delete the ), predict S -> id := E,
+and soon run into trouble again when we see * instead of := on the
+input.  When the dust settles, our final "correction" will be
+
+    Y := (A * X)  X := X  B := X * X  C := X
+
+If we were smarter, when FT saw X way back at the beginning it would
+know that an ID can't follow a factor_tail IN THIS PARTICULAR CONTEXT
+(where we're inside a parenthesized expression, not at the end of an
+assignment).  Good error recovery algorithms take this into account.
+Wirth showed how to do it in the (better version of) his error-recovery
+algorithm for recursive descent.  He adds a CONTEXT-SENSITIVE FOLLOW SET
+parameter to every R.D. subroutine, and uses these, rather than global
+FOLLOW, to predict epsilon productions.
+
+So, for example, when F calls E in the example above, it would pass as
+E's follow set only { ')' }.  When E calls T it would pass that same
+set, plus FIRST(TT) -- i.e., { ')', '+', '-' }.  When T calls FT it
+would pass what it, itself, was given, namely { ')', '+', '-' }.
+When FT calls itself recursively it would pass this same set yet again.
+When the nested FT sees 'id' on the input, it would know there was a
+problem.  It would delete the id.  The subsequent * is in FIRST(FT), so
+all would be well at that point.  Recognizing the problem early allows
+the parser to, effectively, "correct" the input into
+
+    Y := (A * X*X) + (B * X*X) + (C * X)
+
+Not "right", but certainly better.
+
+We can do something very similar with exception-based recovery.
+
+One can also do something similar in table-driven parsers, but for
+these there's an even easier alternative: go ahead and do the
+epsilon productions, but remember one did so, and when a problem
+arises, restore the stack to where it was when the error _should_
+have been noticed, and recover from there instead.  There isn't a
+good analogue of this approach for the recursive descent case: we
+can't "undo" having returned from a bunch of R.D. routines the way
+we can restore the explicit stack of the T.D. parser.
+
+ANTLR by default uses global FOLLOW sets and Java/C++/C# exception
+handlers, but the compiler writer can (by hand) write smarter handlers.
+
+FMQ (a parser generator developed at the Univ. of Wisc., which we used
+many years ago) buffered epsilon productions and then undid them,
+putting context back on the stack.  FMQ also implements tunable "locally
+least cost" repair.
+
+===========================================
+TABLE-DRIVEN LL PARSING
+
+Table-driven LL parsing is essentially a different way to think about
+recursive descent.  You have a big loop in which you repeatedly look up
+an action in a two-dimensional table based on current leftmost
+non-terminal and current input token.  The actions are (1) match a
+terminal, (2) predict a production, or (3) announce a syntax error.  To
+keep track of the left-most non-terminal, you push the as-yet-unseen
+portions of productions onto a stack:
+
+program:
+    read A
+    read B
+    sum := A + B
+    write sum
+    write sum / 2
+
+    stack                                       remaining input
+    -----                                       ---------------
+    pgm                                         read A read B sum ...
+    stmt_list $$                                read A read B sum ...
+    stmt stmt_list $$                           read A read B sum ...
+    READ ID stmt_list $$                        A read B sum := A ...
+    ID stmt_list $$                             read B sum := A + ...
+    stmt_list $$                                read B sum := A + ...
+    stmt stmt_list $$                           read B sum := A + ...
+    READ ID stmt_list $$                        B sum := A + B ...
+    ID stmt_list $$                             sum := A + B write ...
+    stmt_list $$                                sum := A + B write ...
+    stmt stmt_list $$                           sum := A + B write ...
+    ID := expr stmt_list $$                     := A + B write sum ...
+    := expr stmt_list $$                        A + B write sum ...
+    expr stmt_list $$                           A + B write sum ...
+    term term_tail stmt_list $$                 A + B write sum ...
+    factor fact_tail term_tail stmt_list $$     A + B write sum ...
+    ID fact_tail term_tail stmt_list $$         + B write sum / 2 $$
+    fact_tail term_tail stmt_list $$            + B write sum / 2 $$
+    term_tail stmt_list $$                      + B write sum / 2 $$
+    add_op term term_tail stmt_list $$          + B write sum / 2 $$
+    + term term_tail stmt_list $$               B write sum / 2 $$
+    term term_tail stmt_list $$                 B write sum / 2 $$
+    factor fact_tail term_tail stmt_list $$     B write sum / 2 $$
+    ID fact_tail term_tail stmt_list $$         write sum / 2 $$
+    fact_tail term_tail stmt_list $$            write sum / 2 $$
+    term_tail stmt_list $$                      write sum / 2 $$
+    stmt_list $$                                write sum / 2 $$
+    stmt stmt_list $$                           write sum / 2 $$
+    WRITE expr stmt_list $$                     sum / 2 $$
+
+    ...     etc
+
+    stmt_list $$                                $$
+    $$
+
+The key thing to keep in mind is that the stack contains all the stuff
+you expect to see between now and the end of the program -- what you
+*predict* you will see.  These correspond in a recursive descent parser
+to the concatenation of the remainders of the current case arm in all
+the RD routines on the current call chain.  See the D&I box on p. 83 of
+the text.
+
+------------------------------------------------
+LL PARSER GENERATORS
+
+The algorithm to build PREDICT sets is tedious (for a "real" sized
+grammar), but relatively simple.
+
+    (1) compute FIRST sets and EPS values for symbols
+    (2) compute FOLLOW sets for non-terminals (separate from epsilon)
+        (this requires computing FIRST sets for some *strings*)
+    (3) compute PREDICT sets for productions
+        (this requires computing EPS for some *strings*)
+
+where
+
+    EPS(alpha) == true if alpha =>* epsilon; false OW
+    FIRST(alpha) == {a : alpha =>* a beta}
+    FOLLOW(A) == {a : S =>+ alpha A a beta}
+    PREDICT(A -> alpha) == FIRST(alpha)
+        U (if EPS(alpha) then FOLLOW(A) ELSE NULL)
+
+Steps (1), (2), and (3) begin with "obvious" facts, and use them to
+deduce more facts, until nothing new is learned in a full pass through
+the grammar.
+
+What is obvious?  At a minimum:
+    If A -> epsilon, then EPS(A) = true
+    a in FIRST(a)
+
+How to deduce?
+    If EPS(alpha) == true and A -> alpha, then EPS(A) = true
+    If A -> B beta, then FIRST(A) contains FIRST(B)
+    If A -> alpha B beta, then FOLLOW(B) contains FIRST(beta)
+    If A -> alpha B (or A -> alpha B beta and EPS(beta) = true)
+        then FOLLOW(B) contains FOLLOW(A)
+
+This last one is tricky.  It's NOT true the other way around.  That is,
+A -> alpha B does NOT imply that FOLLOW(A) contains FOLLOW(B).
+Consider our calculator grammar.  We know that ')' is in FOLLOW(E)
+because F -> ( E ).  We also know that $$ is in FOLLOW(S), because
+P -> SL $$, SL -> S SL, and SL -> e.  Now consider the production
+S -> write E.  Clearly the fact that $$ is in FOLLOW(S) means than $$ is
+in FOLLOW(E).  But the fact that ')' is in FOLLOW(E) does NOT mean that
+')' is in FOLLOW(S).  Put another way, ')' is in FOLLOW(E) in the
+context where E was generated from F, but NOT necessarily in the
+context where E was generated from S.
+
+*** If any token belongs to the PREDICT set of more than one production
+with the same lhs, then the grammar is not LL(1).  A conflict can
+arise because the same token can begin more than one rhs, or because it
+can begin one rhs and can also appear *after* the lhs in some valid
+program, and one possible rhs is epsilon.
+
+    << work through generation of PREDICT sets for the toy grammar. >>
+
+For reference, here are the algorithms formally.
+<< I may put these on an overhead slide, but I won't try to write them
+on the board; experience indicates it takes more time than it's worth. >>
+
+    EPS values and FIRST sets for all symbols:
+        for all terminals a
+            EPS(a) := false;  FIRST(a) := {a}
+        for all non-terminals X
+            EPS(X) := if X -> epsilon then true else false
+            FIRST(X) := NULL
+        repeat
+            <outer> for all productions X -> Y1 Y2 ... Yk
+                <inner> for i in 1..k
+                    FIRST(X) +:= FIRST(Yi)
+                    if not EPS(Yi) then continue outer loop
+                EPS(X) := true
+        until no further progress
+
+    EPS(X1 X2 ... Xn): -- similar to the inner loop above
+        for i in 1..n
+            if not EPS(Xi) then return false
+        return true
+
+    FIRST(X1 X2 ... Xn): -- similar to the inner loop above
+        return_value := NULL
+        for i in 1..n
+            return_value +:= FIRST(Xi)
+            if not EPS(Xi) then return
+
+    FOLLOW sets for all symbols:
+        for all symbols X, FOLLOW(X) := NULL
+        repeat
+            for all productions A -> alpha B beta
+                FOLLOW(B) +:= FIRST(beta)
+            for all productions A -> alpha B
+                    or A -> alpha B beta, where EPS(beta) = true
+                FOLLOW(B) +:= FOLLOW(A)
+        until no further progress
+
+finally
+    for all productions A -> alpha
+        PREDICT(A -> alpha) := FIRST(alpha)
+        if EPS(alpha) then PREDICT(A -> alpha) +:= FOLLOW(A)
+
+the grammar is LL(1) iff all the PREDICT sets for productions with the
+same LHS are disjoint
+
+----------------------------------------
+SYNTAX ERROR RECOVERY (reprise)
+
+Natural adaptation of phrase-level recovery to table-driven top-down
+parsing:
+    When we encounter an error in match (TOS is a token that doesn't match
+    the input), we print a message and pop the stack.
+
+    When we encounter an error entry in the table (non-terminal A at TOS),
+    we delete tokens until we find something in FIRST(A) or FOLLLOW(A).
+    If in FIRST(A), we continue the main loop of the driver.  If in
+    FOLLOW(A), we pop the stack first.
+
+    One extra wrinkle: don't want to delete $$ from the input.  Have to
+        treat that as a special case: pop stack and return to main loop.
+
+    More generally, we may define a set of "starter symbols" that are too
+    dangerous to delete (begin, left paren, procedure, ...), because they
+    are likely to presage subsequent structure.  Treat them like $$.
+    Hopefully they'll be in FIRST of something deeper in the stack.  If
+    not, we'll eventually end up with $$ on the stack and remaining input,
+    at which point we print a message and die.
+
+Recall the example of the Immediate Error Detection problem
+
+    Y := (A * X X*X) + (B * X*X) + (C * X)
+               ^ There's a problem here (missing '*' in polynomial).
+                 Can we tell?
+
+Consider the table-driven case.  When we reach the bad point in the input,
+we're in the following state:
+
+stack:  FT TT ) FT TT SL $$     input:  X * X) + (B * X * X) + (C * X) $$
+       top
+
+If we do not address the immediate error detection problem, then
+  - The parse table predicts FT -> epsilon, and we pop FT from the stack
+  - The parse table predicts TT -> epsilon, and we pop TT from the stack
+  - We have a mismatch between ) in the stack and X on the input.  We
+    announce an error, insert the right paren, and match it.
+
+stack:  FT TT SL $$     input:  X * X) + (B * X * X) + (C * X) $$
+
+Continuing,
+  - The parse table predicts FT -> epsilon, and we pop FT from the stack
+  - The parse table predicts TT -> epsilon, and we pop TT from the stack
+  - The parse table predicts SL -> S SL and then S -> id := E, whereupon
+    we match the id, leaving us with:
+  
+stack:  := E SL $$     input:  * X) + (B * X * X) + (C * X) $$
+
+  - Now we have a mismatch between := in the stack and * on the input.
+    We announce another error, insert the :=, and match it:
+  
+stack:  E SL $$     input:  * X) + (B * X * X) + (C * X) $$
+
+  - At this point the parse table has no prediction for (E, *).
+    We delete the star, at which point X is in FIRST(E), allowing us to
+    predict E -> T TT and T -> F FT and F -> id.  We match the id,
+    leaving us with
+ 
+stack:  FT TT SL $$     input:  ) + (B * X * X) + (C * X) $$
+
+  - The parse table predicts FT -> epsilon, and we pop FT from the stack
+  - The parse table predicts TT -> epsilon, and we pop TT from the stack
+
+stack:  SL $$     input:  ) + (B * X * X) + (C * X) $$
+
+  - Now we have no prediction for (SL, )).  We delete ) + (, at which
+    point B is in FIRST(SL), allowing us to predict SL -> S SL and
+    S -> id := E.  We match the id, leaving us with
+
+stack:  := E SL $$     input:  * X * X) + (C * X) $$
+
+So far, we have "corrected" the input to read
+
+    Y := (A * X)  X := X  B * X * X) + (C * X)
+                           ^
+                and we're here in the parse
+
+Continuing in this fashion, we end up pretending that the input was
+
+    Y := (A * X)  X := X  B := X * X  C := X
+
+------------------
+
+We can do much better with CONTEXT-SENSITIVE FOLLOW SETS, as in Wirth's
+algorithm.  These are a bit of a nuissance to generate and track.  An
+attractive alternative is to buffer epsilon productions and then restore
+the stack when we encounter an error.  This makes error recovery a
+little slower, but because that's the uncommon case we don't really care.
+
+When we reach the bad point in the parse we have
+
+stack:  FT TT ) FT TT SL $$     input:  X * X) + (B * X * X) + (C * X) $$
+       top
+
+  - As before, we predict FT -> epsilon and TT -> epsilon, but WE
+    REMEMBER THAT WE DID SO.  (We don't yet know that we have an error.)
+
+stack:  ) FT TT SL $$     input:  X * X) + (B * X * X) + (C * X) $$
+
+  - Again as before, we announce an error when X doesn't match ).
+    Before trying to recover, however, we put back the buffered
+    productions, and we remember that X (id) didn't work -- that is,
+    it's in FOLLOW(FT) but not in CS-FOLLOW(FT).
+
+Our stack is restored to:
+
+stack:  FT TT ) FT TT SL $$     input:  X * X) + (B * X * X) + (C * X) $$
+   
+    Now we want to delete tokens until we find something that is in
+    FIRST(FT) or FOLLOW(FT) \ {id} = {+, -, ), read, write, $$}.
+    [NB: that's still not CS-FOLLOW, which is simply {+, -, )}.]
+
+  - We delete input until we find something in one of these sets (or $$).
+    In this case, * is in FIRST(FT), so we delete the X and predict
+    FT -> * F FT:
+
+stack:  * F FT TT ) FT TT SL $$     input:  * X) + (B * X * X) + (C * X) $$
+
+  - Now we match the star, predict F -> id, and match the id, giving us
+
+stack:  FT TT ) FT TT SL $$     input:  ) + (B * X * X) + (C * X) $$
+
+  - At this point we're back in sync.  We parse the remainder of the
+    input without incident.  We've "repaired" the input to
+
+    Y := (A * X*X) + (B * X*X) + (C * X)
+
+    with only one error message instead of 9.
+
+Arranging for immediate error detection won't always result in better
+"corrections," but it tends to.
+
+--------------------------------------------------
+| Locally least-cost error recovery (ala FMQ)
+| 
+|     Perform the least-cost modification to the input that allows you to
+|     accept one more REAL token.  Do not change the state of the parser.
+|     Modify the input stream and re-start parsing.  Whenever we want to
+|     "throw away" stuff near the top of the stack we do it by pushing its
+|     yield onto the beginning of the input stream.
+| 
+|     Consider first the insertion-only algorithm.  It requires an
+|     insert-correctable language.  It also requires buffering of epsilon
+|     moves in an SLL-style parser.
+|         - any input can be repaired (even the Gettysburg Address).
+|         - repairs can be tuned (by tweaking insertion costs)
+|         - table-driven and therefore fully automatic
+|         - linear time and space requirements
+|         - locally optimal
+| 
+|     Cost C(t) for each terminal.  Higher C(t) means t is less likely to
+|     be inserted.  C($$) = infinity.  C(epsilon) = 0.
+|     Special symbol ?? with C(??) = infinity.
+|     Extend C to strings in the obvious way.
+| 
+|     Some heuristics:
+|         - insertion should usually be cheaper than deletion
+|         - common operators have lower cost than uncommon operators in
+|             same place in the grammar [C(*) < C(%)].
+|         - closing symbols have lower cost than opening symbols
+|             [C(BEGIN) > C(END)]
+|         - noise symbols have very low cost [, ; DO]
+| 
+|     Tables:
+|         S : symbols --> terminal strings
+|             S(A) is the lowest cost string derivable from A.
+|             S(a) is of course a.
+|         E : symbol/terminal pairs --> terminal strings
+|             if A does not derive a string containing a, then
+|                 E(A,a) = ??
+|             else E(A,a) = lowest cost prefix w of a in A; that is,
+|                 lowest cost w such that A ==>* wax
+| 
+|             if a = b, then E(a,b) = epsilon
+|             else E(a,b) = ??
+| 
+|         S table is pretty small
+|         E table is moderately large, but manageable
+| 
+|     Find_Insert (stack XN ... X2 X1, token a) returns (string ins)
+|         ins := ??
+|         prefix := epsilon
+|         for i := N downto 1 do
+|             if C(prefix) >= C(ins)
+|                 {no better insertion is possible}
+|                 return
+|             if C(prefix CAT E(Xi,a)) < C(ins)
+|                 {better insertion found}
+|                 ins := prefix CAT E(Xi,a)
+|             prefix := prefix CAT S(Xi)
+| 
+| Insertion-only correction requires insert-correctable language.
+| Most practical languages are at least close.
+| 
+| Allowing deletions, too, makes for better quality repairs, and works for
+| any LL(1) language.
+| 
+|     second cost vector
+|         D(a) = cost of deleting a
+|         again extended to strings in obvious way
+| 
+|     embed the previous algorithm in a second loop
+|     repeatedly consider deleting more and more tokens, each time
+|         executing the above routine with the remaining input, until
+|         the cost of deleting additional tokens exceeds the cost of
+|         the current best repair.
+| 
+|     LL_repair (stack XN ... X2 X1, input a1 a2 ...)
+|             returns (string best_ins, int best_del)
+|         i := 0 -- number of tokens we're considering deleting
+|         <best_ins, best_del> := <??, 0>
+|         loop
+|             cur_ins := Find_Insert (XN ..., a[i+1])
+|             if C(cur_ins) + D(a1...a[i]) < C(best_ins) + D(a1...a[best_del])
+|                 <best_ins, best_del> := <cur_ins, i>
+|             i +:= 1
+|             if D(a1...a[i]) > C(best_ins) + D(a1...a[best_del])
+|                 return
+|         end loop
+| 
+| ======================================================
+| 
+| LR PARSING
+| 
+| LR parsers are almost always table-driven.
+| Like a table-driven LL parser, an LR parser uses a big loop in which it
+| repeatedly inspects a two-dimensional table to find out what action to take.
+| Unlike the LL parser, however, the LR driver has non-trivial state
+| (like a DFA), and the table is indexed by current input token and
+| current state.
+| The stack contains a record of what has been seen SO FAR (NOT what is
+| expected to be seen in the future), intersperced with states.
+| 
+| --------------------------------------------------
+| 
+| Recall some theory:
+| 
+|     A scanner is a DFA.  It can be specified with a state diagram, as
+|     we saw.
+| 
+|     An LL or LR parser is a PDA (Early's alg. and the CYK alg. do NOT use
+|     PDAs).  A PDA can be specified with a state diagram and a stack.  The
+|     state diagram looks just like a DFA state diagram, except the arcs are
+|     labeled with <input symbol, top-of-stack symbol> pairs, and in addition
+|     to moving to a new state the PDA has the option of pushing or popping a
+|     finite number of symbols onto/off the stack.
+| 
+|     An LL(1) PDA has only one state!  (Well, actually two; it needs a second
+|     one to accept with, but that's all.)  It's pretty simple.  All the arcs
+|     are self loops; the only difference between them is the choice of whether
+|     to push or pop.  The final state is reached by a transition that sees
+|     EOF on the input and the stack.
+| 
+|     An SLR/LALR/LR PDA has multiple states.  It is a "recognizer," not
+|     a "predictor."  It builds a parse tree from the bottom up.  The states
+|     keep track of which productions we *might* be in the middle of.
+| 
+| ---------------------------
+| 
+| To illustrate LR parsing (which you won't be using), re-consider our
+| original grammar:
+| 
+|     program       ->  stmt_list $$
+|     stmt_list     ->  stmt_list stmt | stmt
+|     stmt          ->  ID := expr | READ ID | WRITE expr
+|     expr          ->  term | expr add_op term
+|     term          ->  factor | term mult_op factor
+|     factor        ->  ( expr ) | ID | LITERAL
+|     add_op        ->  + | -
+|     mult_op       ->  * | /
+| 
+| This grammar is SLR(1), a particularly nice class of bottom-up grammar.
+| [NB: it isn't exactly what I gave you originally; I've eliminated the epsilon
+| production to simplify the presentation.]
+| 
+| << walk through a bottom-up parse of the example program
+|     illustrate it with growing-together pieces of the tree >>
+| 
+|     read A
+|     read B
+|     sum := A + B
+|     write sum
+|     write sum / 2
+| 
+|     0                                             read A read B ...
+|     0 READ 3                                      A read B ...
+|     0                                             S read B ...
+|     0                                             SL read B ...
+|     0 stmt_list 1                                 read B sum ...
+|     0 stmt_list 1 READ 3                          B sum := ...
+|     0 stmt_list 1                                 S sum := ...
+|     0                                             SL sum := ...
+|     0 stmt_list 1                                 sum := A ...
+|     0 stmt_list 1 ID 2                            := A + ...
+|     0 stmt_list 1 ID 2 := 5                       A + B ...
+|     0 stmt_list 1 ID 2 := 5                       F + B ...
+|     0 stmt_list 1 ID 2 := 5                       T + B ...
+|     0 stmt_list 1 ID 2 := 5 term 7                + B write ...
+|     0 stmt_list 1 ID 2 := 5                       E + B write ...
+|     0 stmt_list 1 ID 2 := 5 expr 9                + B write ...
+|     0 stmt_list 1 ID 2 := 5 expr 9 + 10           B write sum ...
+|     0 stmt_list 1 ID 2 := 5 expr 9 + 10           F write sum ...
+|     0 stmt_list 1 ID 2 := 5 expr 9 + 10           T write sum ...
+|     0 stmt_list 1 ID 2 := 5 expr 9 + 10 term 13   write sum write ...
+|     0 stmt_list 1 ID 2 := 5                       E write sum write ...
+|     0 stmt_list 1 ID 2 := 5 expr 9                write sum write ...
+|     0 stmt_list 1 ID 2 := 5 expr 9                write sum write ...
+|     0 stmt_list 1                                 S write sum write ...
+|     0                                             SL write sum write ...
+|     0 stmt_list 1                                 write sum write ...
+|     0 stmt_list 1 WRITE 4                         sum write sum / ...
+|     0 stmt_list 1 WRITE 4                         F write sum / ...
+|     0 stmt_list 1 WRITE 4                         T write sum / ...
+|     0 stmt_list 1 WRITE 4 term 7                  write sum / ...
+|     0 stmt_list 1 WRITE 4                         E write sum / ...
+|     0 stmt_list 1 WRITE 4 expr 6                  write sum / ...
+|     0 stmt_list 1                                 S write sum / ...
+|     0                                             SL write sum / ...
+|     0 stmt_list 1                                 write sum / ...
+|     0 stmt_list 1 WRITE 4                         sum / 2 ...
+|     0 stmt_list 1 WRITE 4                         F / 2 ...
+|     0 stmt_list 1 WRITE 4                         T / 2 ...
+|     0 stmt_list 1 WRITE 4 term 7                  / 2 $$
+|     0 stmt_list 1 WRITE 4 term 7 / 11             2 $$
+|     0 stmt_list 1 WRITE 4 term 7 / 11             F $$
+|     0 stmt_list 1 WRITE 4                         T $$
+|     0 stmt_list 1 WRITE 4 term 7                  $$
+|     0 stmt_list 1 WRITE 4                         E $$
+|     0 stmt_list 1 WRITE 4 expr 6                  $$
+|     0 stmt_list 1                                 S $$
+|     0                                             SL $$
+|     0 stmt_list 1                                 $$
+|     0                                             P
+|     [done]
+| 
+| The above states are wrt the following CFSM (characteristic finite state
+| machine):
+| 
+| 0:
+|     P -> . SL $$            on SL shift and goto 1
+|     ---------
+|     SL -> . SL S
+|     SL -> . S               on S shift and reduce (by 1, recognizing SL)
+|     S -> . ID := E          on ID shift and goto 2
+|     S -> . READ ID          on READ shift and goto 3
+|     S -> . WRITE E          on WRITE shift and goto 4
+| 
+| 1:
+|     P -> SL . $$            on $$ shift and reduce (by 2, recognizing P)
+|     SL -> SL . S            on S shift and reduce (by 2, recognizing SL)
+|     ---------
+|     S -> . ID := E          on ID shift and goto 2
+|     S -> . READ ID          on READ shift and goto 3
+|     S -> . WRITE E          on WRITE shift and goto 4
+| 
+| 2:
+|     S -> ID . := E          on := shift and goto 5
+| 
+| 3:
+|     S -> READ . ID          on ID shift and reduce (by 2, recognizing S)
+| 
+| 4:
+|     S -> WRITE . E          on E shift and goto 6
+|     ---------
+|     E -> . T                on T shift and goto 7
+|     E -> . E add_op T
+|     T -> . F                on F shift and reduce (by 1, recognizing T)
+|     T -> . T mul_op F
+|     F -> . ( E )            on ( shift and goto 8
+|     F -> . ID               on ID shift and reduce (by 1, recognizing F)
+|     F -> . LITERAL          on LITERAL shift and reduce (by 1, recognizing F)
+| 
+| 5:
+|     S -> ID := . E          on E shift and goto 9
+|     ---------
+|     E -> . T                on T shift and goto 7
+|     E -> . E add_op T
+|     T -> . F                on F shift and reduce (by 1, recognizing T)
+|     T -> . T mul_op F
+|     F -> . ( E )            on ( shift and goto 8
+|     F -> . ID               on ID shift and reduce (by 1, recognizing F)
+|     F -> . LITERAL          on LITERAL shift and reduce (by 1, recognizing F)
+| 
+| 6:
+|     S -> WRITE E .          on add_op shift and goto 10
+|     S -> E . add_op T       OW reduce (by 2, recognizing S)
+| 
+| 7:  E -> T .                on mul_op shift and goto 11
+|     T -> T . mul_op F       OW reduce (by 1, recognizing E)
+| 
+| 8:
+|     F -> ( . E )            on E shift and goto 12
+|     ---------
+|     E -> . T                on T shift and goto 7
+|     E -> . E add_op T
+|     T -> . F                on F shift and goto reduce (by 1, recognizing T)
+|     T -> . T mul_op F
+|     F -> . ( E )            on ( shift and goto 8
+|     F -> . ID               on ID shift and reduce (by 1, recognizing F)
+|     F -> . LITERAL          on LITERAL shift and reduce (by 1, recognizing F)
+| 
+| 9:
+|     S -> ID := E .          on add_op shift and goto 10
+|     E -> E . add_op T       OW reduce (by 3, recognizing S)
+| 
+| 10:
+|     E -> E add_op . T       on T shift and goto 13
+|     ---------
+|     T -> . F                on F shift and reduce (by 1, recognizing T)
+|     T -> . T mul_op F
+|     F -> . ( E )            on ( shift and goto 8
+|     F -> . ID               on ID shift and reduce (by 1, recognizing F)
+|     F -> . LITERAL          on LITERAL shift and reduce (by 1, recognizing F)
+| 
+| 11:
+|     T -> T mul_op . F       on F shift and reduce (by 3, recognizing T)
+|     ---------
+|     F -> . ( E )            on ( shift and goto 8
+|     F -> . ID               on ID shift and reduce (by 1, recognizing F)
+|     F -> . LITERAL          on LITERAL shift and reduce (by 1, recognizing F)
+| 
+| 12:
+|     F -> ( E . )            on ) shift and reduce (by 3, recognizing F)
+|     E -> E . add_op T       on add_op shift and goto 10
+| 
+| 13:
+|     E -> E add_op T .       on mul_op shift and goto 11
+|     T -> T . mul_op F       OW reduce (by 3, recognizing E)
