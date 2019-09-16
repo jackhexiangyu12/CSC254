@@ -462,6 +462,10 @@ Some of the other subroutines follow:
             / : match(/)
             otherwise parse_error
 
+    procedure match(expected)
+        if input_token = expected then consume_input_token()
+        else parse_error
+
     etc.
 
 -------------------------------------------
