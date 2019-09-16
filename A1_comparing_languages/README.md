@@ -52,10 +52,6 @@ Replace `num_of_nodes` with any integer greater than or equal to zero.
 
 $T(0) = 1,\ T(1) = 1,\ T(n) = \sum_{i=1}^{n} T(i-1)T(n-1)$
 
-**Determine the asymptotic (big-O) time and space requirements of your various programs.  Are some of them better than others?**
-
-Ada, C#, Python: $O(n^4)$
-
 ## Programming Experience
 
 **What was easy? What was hard?**
