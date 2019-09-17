@@ -437,6 +437,35 @@ Some of the other subroutines follow:
             ), id, read, write, $$ : skip // epsilon
             else                     error
 
+    procedure factor()
+        case input_token of 
+            id : match(id)
+            number : match(number)
+            ( : match((); expr(); match())
+            otherwise parse_error
+
+    procedure factor_tail()
+        case input_token of 
+            *, / : mult_op(); factor(); factor_tail()
+            +, -, ), id, read, write, $$ : skip // epsilon 
+            otherwise parse_error
+
+    procedure add_op()
+        case input_token of 
+            + : match(+)
+            - : match(-)
+            otherwise parse_error
+
+    procedure mult_op()
+        case input_token of 
+            * : match(*)
+            / : match(/)
+            otherwise parse_error
+
+    procedure match(expected)
+        if input_token = expected then consume_input_token()
+        else parse_error
+
     etc.
 
 -------------------------------------------
