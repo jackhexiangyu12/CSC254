@@ -46,6 +46,12 @@ Replace `num_of_nodes` with any integer greater than or equal to zero.
 - Since we use dynamic programming (except for OCaml) and store trees as list of strings, our implementations perform better in both runtime and memory consumption. 
 - Our implementation in Prolog can print all possible trees without typing semicolons at the interpreter prompt. 
 
+## Extra Credit
+
+**Give a close form formula for T(n), the number of trees produced by your code for a given parameter n, and prove that it's correct.**
+
+$T(0) = 1,\ T(1) = 1,\ T(n) = \sum_{i=1}^{n} T(i-1)T(n-1)$
+
 ## Programming Experience
 
 **What was easy? What was hard?**
