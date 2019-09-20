@@ -19,3 +19,53 @@
 2.12
 
 (a) more a than b
+
+2.6
+bool match(expected, curr) {
+    return expected = curr;
+}
+
+bool P(enum[] tokens) {
+    SL(tokens);
+    match("$$", tokens);
+}
+
+bool SL(enum[] tokens) {
+    if (lookahead() \in First(S)) {
+        S(tokens);
+        SL(tokens);
+    } else {
+        return;
+    }
+}
+
+bool S(enum[] tokens) {
+    t = lookahead();
+    if (t \in First(id)) {
+        id(t);
+        match(":=", t);
+        E(t);
+    } else if (t == read) {
+        match(read);
+        id(t);
+    }
+}
+
+2.18
+
+(a) FIRST(Es) = epsilon U First(E)
+              = epsilon U {atom, ', (}
+              = {atom, ', (, epsilon}
+    FOLLOW(E) = {$$, atom, ', (, )}
+    PREDICT(Es -> epsilon) = {)}
+(b) 
+(c) P -> E $$
+      -> ( E Es ) $$
+      -> ( cdr Es ) $$
+      -> ( cdr E Es ) $$
+      -> ( cdr ' E Es ) $$
+      -> ( cdr ' ( E Es ) Es ) $$
+      -> ( cdr ' ( a Es ) Es ) $$
+      -> ( cdr ' ( a E Es ) Es ) $$
+      -> ...
+(d) 
