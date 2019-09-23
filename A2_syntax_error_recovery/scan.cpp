@@ -2,12 +2,20 @@
     Michael L. Scott, 2008-2019.
 */
 
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
-#include "ctype.h"
+// #include "stdio.h"
+// #include "stdlib.h"
+// #include "string.h"
+// #include "ctype.h"
+
+#include <iostream>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cctype>
 
 #include "scan.h"
+
+using namespace std;
 
 char token_image[MAX_TOKEN_LEN];
 
@@ -26,7 +34,8 @@ token scan() {
         do {
             token_image[i++] = c;
             if (i >= MAX_TOKEN_LEN) {
-                printf("max token length exceeded\n");
+                // printf("max token length exceeded\n");
+                cout << "max token length exceeded" << endl;
                 exit(1);
             }
             c = getchar();
@@ -46,7 +55,8 @@ token scan() {
     } else switch (c) {
         case ':':
             if ((c = getchar()) != '=') {
-                fprintf(stderr, "error\n");
+                // fprintf(stderr, "error\n");
+                cerr << "error\n"
                 exit(1);
             } else {
                 c = getchar();
@@ -60,7 +70,8 @@ token scan() {
         case '(': c = getchar(); return t_lparen;
         case ')': c = getchar(); return t_rparen;
         default:
-            printf("error\n");
+            // printf("error\n");
+            cout << "error" << endl;
             exit(1);
     }
 }
