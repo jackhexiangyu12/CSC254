@@ -34,7 +34,6 @@ token scan() {
         do {
             token_image[i++] = c;
             if (i >= MAX_TOKEN_LEN) {
-                // printf("max token length exceeded\n");
                 cout << "max token length exceeded" << endl;
                 exit(1);
             }
@@ -70,7 +69,6 @@ token scan() {
         case '(': c = getchar(); return t_lparen;
         case ')': c = getchar(); return t_rparen;
         default:
-            // printf("error\n");
             cout << "error" << endl;
             exit(1);
     }
