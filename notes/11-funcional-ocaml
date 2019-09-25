@@ -62,6 +62,8 @@ Consider:
         return a;
     }
 
+Following code needs to be modified: 
+
     typedef int (*int_func) (int);
     int summation(int_func f, int low, int high) {
         /* assume low <= high */
