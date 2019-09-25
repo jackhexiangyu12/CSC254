@@ -1,0 +1,887 @@
+Functional programming (25 and 30 Sept. 2019)
+
+A2 due Sunday Sept. 29, 11:59pm
+
+A3 will be an interpreter for the extended calculator language, in OCaml.
+
+=================================
+Functional programming
+
+Functional langugaes such as Lisp/Scheme and ML/Haskell/OCaml/F#
+are an attempt to realize Church's lambda calculus in practical form as
+a programming language.
+
+The key idea: do everything by composing functions.  No mutable state;
+no side effects.
+
+So how do you get anything done in a functional language?
+
+---------------------------------
+RECURSION
+
+Takes the place of iteration.
+
+Some tasks are "naturally" recursive.  Consider for example the
+function
+                        { a           if a = b
+            gcd(a, b) = { gcd(a-b, b) if a > b
+                        { gcd(a, b-a) if b > a
+(Euclid's algorithm).
+
+We might write this in C as
+
+    int gcd(int a, int b) {
+        /* assume a, b > 0 */
+        if (a == b) return a;
+        else if (a > b) return gcd(a-b, b);
+        else return gcd(a, b-a);
+    }
+
+Other tasks we're used to thinking of as naturally iterative:
+
+    typedef int (*int_func) (int);
+    int summation(int_func f, int low, int high) {
+        /* assume low <= high */
+        int total = 0;
+        int i;
+        for (i = low; i <= high; i++) {
+            total += f(i);
+        }
+        return total;
+    }
+
+But there's nothing sacred about this "natural" intuition.
+Consider:
+
+    int gcd(int a, int b) {
+        /* assume a, b > 0 */
+        while (a != b) {
+            if (a > b) a = a-b;
+            else b = b-a;
+        }
+        return a;
+    }
+
+    typedef int (*int_func) (int);
+    int summation(int_func f, int low, int high) {
+        /* assume low <= high */
+        if (low == high) return f(low);
+        else return f(low) + summation(f, low+1, high);
+    }
+
+More significantly, the recursive solution doesn't have to be any more
+expensive than the iterative solution.  In OCaml, the gcd function
+would be written
+
+    let rec gcd a b =
+      if a = b then a
+      else if a > b then gcd (a - b) b
+      else gcd a (b - a);;
+
+>> explain
+>>     top-level forms, let
+>>     rec
+>>     necessity of else
+>>     application via justaposition, use of parentheses
+>>     double semicolons (tells REPL you're done and it should interpret)
+
+Note that the recursive call is the LAST thing gcd does -- no further
+computation after the return.  This is called TAIL RECURSION.
+Functional language compilers will translate this as, roughly:
+
+    gcd(a, b) {
+    top:
+        if a == b return a
+        elsif a > b
+            a := a - b
+            goto top
+        else
+            b := b - a
+            goto top
+    }
+
+Functional programmers get good at writing functions that are naturally
+tail recursive.  For example, instead of
+
+    let rec sum1 f low high =
+      if low = high then f low
+      else (f low) + (sum1 f (low + 1) high);;
+
+we could write
+
+    let rec sum2 f low high st =
+      if low = high then st + f low
+      else sum2 f (low + 1) high (st + (f low));;
+
+but then we have to provide an extra zero parameter to the call:
+
+    # sum1 (fun x -> x*x) 1 10;;
+    - : int = 385
+
+    # sum2 (fun x -> x*x) 1 10 0;;
+    - : int = 385
+
+>> explain fun -- LAMBDA EXPRESSION
+
+To get rid of that extra parameter, we can wrap it:
+
+    let sum3 f low high =
+      let rec helper low st =
+        let new_st = st + (f low) in
+        if low = high then new_st
+        else helper (low + 1) new_st in
+      helper low 0;;
+
+>> explain
+>>      internal let
+>>      lexical nesting
+>> note lack of rec on declaration of sum3
+>>      (compiler wouldn't have complained; just unnecessary)
+
+(This tail recursive code exploits the associativity of addition;
+a compiler is unlikely to do it for us automatically.  There exist
+automatic mechanisms to turn non-tail-recursive functions into
+tail-recursive ones, using what's known as *continuation passing style*,
+but that wouldn't be as efficient in this case.)
+
+--------
+
+Sometimes you'll hear someone argue that recursion is *algorithmically
+inferior* to iteration.  Fibonacci numbers are sometimes given as an
+example:
+
+    let rec fib1 n =
+      match n with
+      | 0 -> 1
+      | 1 -> 1
+      | _ -> fib1 (n-1) + fib1 (n-2);;
+
+This takes O(2^n) time, where O(n) is possible.  In a von Neumann
+language we are taught to write
+
+    int fib(int n) {
+        int f1 = 1; int f2 = 1;
+        int i;
+        for (i = 2; i <= n; i++) {
+            int temp = f1 + f2;
+            f1 = f2; f2 = temp;
+        }
+        return f2;
+    }
+
+But there's no reason why we have to do it the slow way in OCaml.
+We can write the following instead:
+
+    let fib2 n =
+      let rec helper f1 f2 i =
+        if i = n then f2
+        else helper f2 (f1 + f2) (i + 1) in
+      helper 0 1 0;;
+
+Thinking about recursion as a direct, mechanical replacement for
+iteration is the wrong way to look at things.  One has to get used to
+thinking in a recursive style.
+
+NB: One can actually do better than O(n).  In particular, F(n) is the
+nearest whole number to phi^n/sqrt(5), where phi = (1 + sqrt(5))/2, but
+this has high constant-factor costs and problems with numeric precision.
+For modest n, the O(n) algorithm is perfectly respectable.
+
+NB2: OCaml has imperative features, so we *can* write the iterative
+version.  It runs against the grain of the language, however (like
+writing C-like code in C++, only worse), and you won't be allowed to
+do it for the upcoming assignment.
+
+NB3: Recursion isn't enough by itself to create a really useful
+functional language.  You also need of *higher-order functions*
+(functional forms).  More on this later.
+
+---------------------------------
+
+A more complete list of necessary features for functional programming,
+many of which are missing in some imperative languages:
+    recursion
+    1st class and high-order functions (including unlimited extent)
+    serious polymorphism
+    powerful list facilities
+    fully general aggregates
+    structured function returns
+    garbage collection
+Lisp also has
+    homoiconography
+    self-definition
+    read-eval-print
+ML/Haskell/F# have
+    Milner type inference
+    pattern matching
+    implicit currying
+    syntactic sugar: list comprehensions, monads
+these are not necessarily present in other functional langs
+
+There are lots of functional programming languages.
+Lisp and ML are the roots of the two main trees.
+
+    Lisp dates from about 1960.  It was directly inspired by the lambda
+    calculus, Alonzo Church's mathematical formulation of the notion of
+    computation (which you may have seen a bit of in 173).  The two most
+    important Lisp dialects today are Common Lisp (big, full-featured)
+    and Scheme/Racket (smaller and more elegant, but getting bigger).
+
+    ML was developed by Robin Milner in the mid-to-late 1970s.  The two
+    main ML dialects today are SML and OCaml.  Many academics consider
+    SML more elegant, but OCaml is more "practical" -- it has a better
+    toolchain and is widely used in industry.  Microsoft's F# is an
+    OCaml descendant.  Haskell is an ML descendant (through Miranda);
+    it's the leading language for research in functional programming,
+    and is increasingly popular in industry as well.  Haskell is
+    distinguished by being purely functional (no imperative features at
+    all) and by using lazy (normal-order) evaluation.
+
+--------------------------
+Introduction to OCaml
+
+compiler or interpreter (your choice)
+ocamlc      ocaml
+
+Interpreter runs a read-eval-print loop (REPL) much like Scheme or Python.
+#use "file.ml"          load source code
+#load "library.cma"     load binary library
+
+simple data types
+    bool, int, float, strings, tuples (pairs), lists
+        +, *, etc. v. +., *., etc.
+        float constants must contain a decimal point
+        ^ (string concatenation)
+        fst & snd
+            work _only_ on two-element tuples (else run-time exception)
+        hd, tl (deprecated: prefer pattern matching)
+        :: and @ (cons and append)
+
+"structural" (same value) v. "physical" (same instance) equality
+    =, <>       structural
+                2 = 2; "foo" = "foo"; [1;2;3] = [1;1+1;5-2]
+    ==, !=      physical
+                2 == 2; "foo" != "foo"; [1;2;3] != [1;1+1;5-2]
+
+ordering (<, >, <=, >=) are defined on all non-function types.  They do
+what you'd expect on arithmetic types, Booleans, characters, strings, and
+tuples, but may not make much sense on others.
+
+type inference
+
+lexical conventions
+    identifiers made from a-zA-Z0-9_'
+        must start with a letter or underscore
+        constructors, variant names, modules, and exceptions have to
+            start with an upper case letter
+        everything else starts with a lower case letter or underscore
+
+(* (* comments *) nest *)
+
+top-level forms terminated by ;;
+
+functions
+    let f a1 a2 a3 = ...
+    let f (a1:t1) (a2:t2) (a3:t3) : rt = ...
+    let f: t1 -> t2 -> t3 -> rt = fun a1 a2 a3 -> 
+        those last 3 are equivalent, though the first is implicitly typed
+
+    let rec
+
+    let f = ...
+    and g = ...
+
+pattern matching
+    match expr with
+      var1 ->
+    | var2 when pred2 ->
+    | ...
+    | _ ->
+
+    also works in other contexts, e.g. let (s, t, f) = my_tuple;;
+
+    or function definitions: the (bad) Fibonacci example above
+
+        let rec fib1 n =
+          match n with
+          | 0 -> 1
+          | 1 -> 1
+          | _ -> fib1 (n-1) + fib1 (n-2);;
+
+    can be rewritten
+
+        let rec fib1 = function
+          | 0 -> 1
+          | 1 -> 1
+          | n -> fib1 (n-1) + fib1 (n-2);;
+
+arrays
+    let primes5 = [| 2; 3; 5; 7; 11 |];;
+    .() subscripting
+        primes5.(2)  => 5
+    elements are mutable (unlike those of lists and tuples)
+    assignment uses left arrow:
+        primes5.(2) <- 12345;;      => ()
+
+strings
+    like arrays of characters.  Were mutable in older versions of the
+    language.  That's now deprecated.  If you need mutability, use bytes
+    instead.
+
+records
+    like tuples, but with fields that are named instead of positional
+    can declare fields to be mutable (immutable by default)
+    type widget = {name: string; sn: int; mutable price: float};;
+    let g = {name = "gear"; sn = 12345; price = 23.45};;
+        g.name   => "gear"
+    g.price <- 34.56;;      (* inflation *)
+
+variants
+    type 'a bin_tree = Empty | Node of 'a * 'a bin_tree * '*a bin_tree;;
+    ...
+    match t with
+    | Empty -> ...
+    | Node(v, t1, t2) -> ...
+
+side effects
+    <- (mutable) record field assignment (not allowed in project)
+    := and ! refs (like pointers; also not allowed in project)
+    I/O
+        read_line, read_int, read_float
+        print_int, print_float,
+            print_char, print_string, print_newline,
+        prerr_int, prerr_float, prerr_string, prerr_newline
+    Printf module
+        printf
+        sprintf
+Sys.argv
+exceptions
+    exception Foo of string;;
+    raise (Foo "ouch")
+    try expr1 with Foo -> expr2
+
+--------------------------
+Example program in OCaml: simulation of a DFA.
+
+We'll invoke the program by calling a function called 'simulate',
+passing it a DFA description and an input string.
+The automaton description is a record with three fields: the start
+state, the transition function, and a list of the one or more final
+states.  We can trivially make it polymorphic in the type of input symbols:
+
+    type state = int;;
+    type 'a dfa = {
+      current_state : state;
+      transition_function : (state * 'a * state) list;
+      final_states : state list;
+    };;
+    type decision = Accept | Reject;;
+
+We've named the first field "current_state" instead of "start_state" for
+reasons that will become apparent in a minute.
+
+The transition function is represented by a list of triples.
+The first element and third elements of each triple are the from and to
+states; the second element is the input symbol that transitions between
+them.
+
+For example, consider the DFA
+
+let a_b_even_dfa : char dfa =       (* input symbols are characters *)
+  { current_state = 0;
+    transition_function =
+      [ (0, 'a', 2); (0, 'b', 1); (1, 'a', 3); (1, 'b', 0);
+        (2, 'a', 0); (2, 'b', 3); (3, 'a', 1); (3, 'b', 2) ];
+    final_states = [0];
+  };;
+
+This machine accepts strings containing an even number of a's and an even
+number of b's.
+
+If we type
+
+    simulate a_b_even_dfa ['a'; 'b'; 'b'; 'a'; 'b'];;
+
+then the OCaml interpreter (read-eval-print loop) will print
+
+    - : state list * decision = ([0; 2; 3; 2; 0; 1], Reject)
+
+If we change the input string to abaaba it will print
+
+    - : state list * decision = ([0; 2; 3; 1; 3; 2; 0], Accept)
+
+Here is the program:
+
+    open List;;     (* includes rev, find, and mem functions *)
+
+    let move (d:'a dfa) (x:'a) : 'a dfa =
+      { current_state = (
+          let (_, _, q) =
+            find (fun (s, c, _) -> s = d.current_state && c = x)
+                 d.transition_function in
+          q);
+        transition_function = d.transition_function;
+        final_states = d.final_states;
+      };;
+
+    let simulate (d:'a dfa) (input:'a list) : (state list * decision) =
+      let rec helper moves d2 remaining_input : (state option * state list) =
+        match remaining_input with
+        | [] -> (Some d2.current_state, moves)
+        | hd :: tl ->
+            let new_moves = d2.current_state :: moves in
+            try helper new_moves (move d2 hd) tl
+            with Not_found -> (None, new_moves) in
+      match helper [] d input with
+      | (None, moves) -> (rev moves, Reject)
+      | (Some last_state, moves) ->
+          ( rev (last_state :: moves),
+            if mem last_state d.final_states then Accept else Reject);;
+
+The basic idea is this: simulate takes a DFA and an input string as argument.
+If the input string is empty, it checks to see if the start state of the DFA
+is a final state.  If the input string is not empty, simulate calls itself
+recursively, passing a one-symbol-shorter input string and a DFA that has
+been modified to have a different start state, namely the one that the old
+DFA moved to when given the initial input symbol.
+
+--------------------------
+| Evaluation order
+| 
+| Applicative order
+|     what you're used to in imperative languages
+|     usually faster
+| Normal order
+|     like call-by-name: don't evaluate arg until you need it
+|     sometimes faster
+|     terminates if anything will (Church-Rosser theorem)
+| 
+| In Scheme
+|     functions use applicative order
+|         defined with lambda
+|     special forms (aka macros) use normal order
+|         defined with syntax-rules
+| 
+| A *strict* language requires all arguments to be well-defined, so
+| applicative order can be used.
+| 
+| A *non-strict* language does not require all arguments to be
+| well-defined; it requires normal-order evaluation.
+| 
+| Lisp and ML are strict.  Haskell is non-strict.
+| 
+| Lazy evaluation gives the best of both worlds.
+| But not good in the presence of side effects.
+|     delay and force in Scheme
+|     delay creates a "promise"
+| 
+|     (define naturals
+|       (letrec ((next (lambda (n) (cons n (delay (next (+ n 1)))))))
+|         (next 1)))
+|     (define head car)
+|     (define tail (lambda (stream) (force (cdr stream))))
+| 
+|     (head naturals)                 => 1
+|     (head (tail naturals)           => 2
+|     (head (tail (tail naturals)))   => 3
+|
+--------------------------
+Higher-order functions
+
+Take a function as argument, or return a function as a result.
+Examples
+
+    map (fun x -> x*x) [2; 3; 5; 7]     => [4; 9; 25; 49]
+
+    compose (not pre-defined in some implementations)
+
+        let compose f g x = f (g x);;
+
+        (compose hd tl) [1; 2; 3]       => 2
+
+    find (fun x -> x*x > 100) [7; 9; 11; 13]     => 11
+
+Great for building things:
+
+    fold_left ( * ) 1 [2; 3; 5; 7]      => 210
+        (* note the spaces around * -- so it's not a comment *)
+        (* also sometimes called "reduce" *)
+
+    could be defined as
+        
+        let rec fold_left f i l =
+            (* initial i is commonly the identity element for f
+               in nested calls it's a subtotal *)
+          match l with
+          | [] -> i
+          | h :: t -> fold_left f (f i h) t;;
+
+    let total l = fold_left ( + ) 0 l;;
+    (* or just *)
+    let total = fold_left ( + ) 0;;
+
+    total [1; 2; 3; 4; 5]               => 15
+
+    let total_all ll = map total ll;;
+    (* or just *)
+    let total_all = map total;;
+
+    total_all [[1; 2; 3; 4; 5];
+               [2; 4; 6; 8; 10];
+               [3; 6; 9; 12; 15]]       => [15; 30; 45]
+
+Currying (after Haskell Curry, the same guy Haskell is named after):
+
+    Automatic in ML family languages (takes some effort in Lisp)
+
+    let total = fold (+) 0;;
+
+    let plus3 = ( + ) 3;;
+
+        plus3 4     => 7
+
+    let plusn n = fun k -> n + k;;
+    let inc = plusn 1;;
+
+        let plus3 = plusn 3;;
+        inc 5                   => 6
+
+    let comb a b = fun x y -> a * x + b * y;;
+    let comb23 = comb 2 3;;
+    comb23 5 6                  => 28
+
+NB: plusn and comb require UNLIMITED EXTENT
+
+So what is going on here?
+
+    let ave a b = (a +. b) /. 2.0;;
+
+is shorthand for
+
+    let ave = fun a -> fun b -> (a +. b) /. 2.0;;
+
+This explains why OCaml says that the type of ave (even with the first
+definition) is "float -> float -> float".
+
+    val ave : float -> float -> float = <fun>
+
+Juxtaposition then makes things really clean:
+when I say
+
+    ave a b
+
+do I mean (in mathematical notation) "ave (a b)" or "(ave (a)) (b)" ?
+It doesn't really matter!
+You do need to be aware what's going on, though, because if you give a
+function two few arguments the error message will usually be "type clash",
+not "too few arguments".
+
+==================================
+Advantages of functional languges:
+
+    lack of side effects makes programs easier to understand
+    lack of explicit evaluation order (in some languages) offers
+        possibility of parallel evaluation (e.g. MultiLisp)
+    lack of side effects and explicit evaluation order simplifies some
+        things for a compiler (provided you don't blow it in other ways)
+    programs are often surprisingly short
+    language can be extremely small and yet powerful
+
+Problems:
+    difficult (but not impossible!) to implement efficiently on
+    von Neumann machines
+        lots of copying of data through parameters
+        (apparent) need to create a whole new array in order to change
+            one element
+        very heavy use of references (space and time and locality problem)
+        frequent procedure calls
+        heavy space use for (non-tail) recursion
+            but anything you can write with a loop in an imperative
+            language is straightforward to write as tail recursion
+        requires garbage collection
+    requires a different mode of thinking by the programmer
+    difficult to integrate I/O into purely functional model
+        leading approach is the monads of Haskell -- sort of an imperative
+        wrapper around a purely functional program; allows functions to be
+        used not only to calculate values, but also to decide on the order in
+        which imperative actions should be performed.
+
+========================================
+In the new assignment, you'll need to really get your mind into the
+functional groove.  DON'T TRY TO GET BY WITHOUT!  Here's a good starting
+exercise.  Grammars are represented like this:
+
+  # calc_gram;;
+  - : (String.t * String.t list list) list =
+  [("P", [["SL"; "$$"]]);
+   ("SL", [["S"; "SL"]; []]);
+   ("S", [["id"; ":="; "E"]; ["read"; "id"]; ["write"; "E"]]);
+   ("E", [["T"; "TT"]]);
+   ("T", [["F"; "FT"]]);
+   ("TT", [["ao"; "T"; "TT"]; []]);
+   ("FT", [["mo"; "F"; "FT"]; []]);
+   ("ao", [["+"]; ["-"]]);
+   ("mo", [["*"]; ["/"]]);
+   ("F", [["id"]; ["num"]; ["("; "E"; ")"]])]
+
+And parse tables are represented like this:
+
+  # get_parse_table calc_gram;;
+  - : (String.t * (String.t list * String.t list) list) list =
+  [("P", [(["$$"; "id"; "read"; "write"], ["SL"; "$$"])]);
+   ("SL", [(["id"; "read"; "write"], ["S"; "SL"]); (["$$"], [])]);
+   ("S",
+    [(["id"], ["id"; ":="; "E"]);
+     (["read"], ["read"; "id"]);
+     (["write"], ["write"; "E"])
+    ]);
+   ("E", [(["("; "id"; "num"], ["T"; "TT"])]);
+   ("T", [(["("; "id"; "num"], ["F"; "FT"])]);
+   ("TT",
+    [(["+"; "-"], ["ao"; "T"; "TT"]);
+     (["$$"; ")"; "id"; "read"; "write"], [])
+    ]);
+   ("FT",
+    [(["*"; "/"], ["mo"; "F"; "FT"]);
+     (["$$"; ")"; "+"; "-"; "id"; "read"; "write"], [])
+    ]);
+   ("ao", [(["+"], ["+"]); (["-"], ["-"])]);
+   ("mo", [(["*"], ["*"]); (["/"], ["/"])]);
+   ("F", [(["id"], ["id"]); (["num"], ["num"]); (["("], ["("; "E"; ")"])])
+  ]
+
+Given the way I chose to structure the code, there are times when it's
+handy to be able to extract the grammar back out of the parse table.
+Here's a routine that does so:
+
+let grammar_of parse_tab =
+  map (fun p -> (fst p, (fold_left (@) [] (map (fun (a, b) -> [b])
+                                               (snd p))))) parse_tab;;
+
+If you understand how it does that, you're probably in good shape.
+If you don't understand it, you need to study it more carefully, review
+Sec. 10.5 in the text, talk to the TA or the instructor, etc.
+
+--------------------------
+| Lambda calculus
+| 
+| A notation/model of computation based on purely syntactic symbol
+| manipulation, in which everything is a function.
+| 
+| Developed by Alonzo Church in the '30's as a model for computability
+|     Church was one of a crowd that also included Chomsky, Turing,
+|         Kleene, and Rosser
+|     everybody heard of Church's thesis?
+| 
+| [ We can define things like integers in terms of a distinguished
+| function (like the identity function) that represents zero, and a
+| successor function that gives us all the other numbers.  This makes
+| it easy to define the arithmetic operators within the notation.  In
+| practice this is kind of a nuissance; I will just assume the
+| existence of arithmetic and of distinguished "constant functions"
+| for numbers. ]
+| 
+| example lambda expressions
+|     identity        Lx.x
+|     const7          Lx.7
+|     plus            Lx.Ly.x + y
+|     square          Lx.x * x
+|     hypot           Lx.Ly.sqrt (plus (square x) (square y))
+| 
+| Recursively, a lambda expression is
+|     (1) a name,
+|     (2) an abstraction consisting of a lambda, a name, a dot, and a
+|     lambda expression,
+|     (3) an application consisting of two adjacent lambda expressions
+|     (juxtaposition means function application), or
+|     (4) a parenthesized lambda expression.
+| 
+| Usually application associates left-to-right, so f A B means (f A) B,
+| rather than f (A B).  Also, application has higher precedence than
+| abstraction, so Lx.A B is Lx.(A B), rather than (Lx.A) B.  Note that
+| ML follows these rules.
+| Parentheses are used for clarity, or to break the rules: by convention,
+| usually use them around any abstraction that is used as a function or
+| an argument:
+|     (Lf.f 2) (Lx.plus x x)
+| and around any application that is used as an argument:
+|     double (minus 5 2)
+| These rules mean that the scope of the dot extends right all the way
+| to the first unmatched right parentheses, or the end of the whole
+| expression if there is no such parenthesis.
+| 
+| In (Lx.Ly.Lz.e) a b c, the initial function takes a single argument and
+| returns a function (of one argument) that returns a function (of one
+| argument).  To reduce the expression, you substitute a for any x's in
+| Ly.Lz.e, then you substitute b for any y's in what remains, and then
+| c for any z's in what remains.
+| 
+| (Lx.Ly.x + y) 3 4
+| Ly.(3 + y) 4
+| (3 + 4)
+| 7
+| 
+| free and bound variables
+|     a variable is bound if it is introduced by a lambda.
+|     For example, in Lx.Ly.(* x y) we have two nested lambda expressions.
+|     x is free in the inner one (Ly.(* x y)), but bound in the outer.
+|     Bindings have scopes, just like they do in programming languages.
+| 
+| evaluation of lambda expressions through
+|     (1) substituting in arguments (beta reduction)
+|        (Lx.times x x) y  =>  times y y
+|     (2) renaming variables (alpha conversion)
+|               (often to avoid naming conflicts)
+|         (Lx.times x x) y  ==  (Lz.times z z) y
+|     (3) simplification "out of order" (eta reduction)
+|         (Lx.f x)  =>  f
+| 
+|     This last rule I found hard to understand.
+|     It is NOT the same as beta reduction.
+|     "(Lx.f x)" is a function.  x is not its argument; x is inside.
+|     But if we apply the function to, say, y:
+|         (Lx.f x) y
+|     we get the same result as we get by applying f to y.
+| 
+|     To make things concrete, suppose f = (Lz.times z z) ; squaring.  Then
+|         (Lx.f x) 3  ==  (Lx.(Lz.times z z) x) 3
+|         =>beta  (Lz.times z z) 3     [outer]
+|         =>beta  times 3 3.
+|     Using eta reduction,
+|         (Lx.f x) 3  =>eta  f 3  ==  (Lz.times z z) 3  =>beta  times 3 3.
+|     Same result.
+| 
+|     In English, f is the function "square your argument".
+|     (f x) is the expression "square x", where x is a free variable.
+|     (Lx.f x) is "square x" AS A FUNCITON OF X, or, put another way,
+|     "square your argument".
+|     The only real differences between the two expressions are
+|     that f is less messy-looking, but (Lx.f x) reminds you explicitly
+|     that f is a function (i.e. that it takes an argument).
+| 
+| an example from the text:
+| 
+|     (Lf.Lg.Lh.f g (h h)) (Lx.Ly.x) h (Lx.x x)
+|         This is a function -- (Lf.Ly.Lh.f g (h h)) -- applied to
+|         three arguments -- (Lx.Ly.x), h, and (Lx.x x)
+|     =>beta (Lg.Lh.(Lx.Ly.x) g (h h)) h (Lx.x x)
+|     =>alpha (Lg.Lk.(Lx.Ly.x) g (k k)) h (Lx.x x)
+|         This conversion is necessary to avoid capturing h in the
+|         following step:
+|     =>beta (Lk.(Lx.Ly.x) h (k k)) (Lx.x x)
+|     =>beta (Lx.Ly.x) h ((Lx.x x) (Lx.x x))
+|     =>beta (Ly.h) ((Lx.x x) (Lx.x x))
+|         The function in this last step doesn't use its argument!
+|     =>beta h
+| 
+| Beta reduction is like substitution of macro parameters, except naming
+| conflicts aren't allowed.  Alpha conversion serves to get rid of the
+| naming conflicts.  The combination is like call-by-name parameters.
+| 
+| Note that at the last line we had a function applied to an application.
+| We had the choice of substituting the application in for y (which we did)
+| or evaluating it first.  If we'd tried the latter, we'd have ended up in
+| an infinite recursion.
+| 
+| These options illustrate the difference between NORMAL ORDER evaluation
+| and APPLICATIVE ORDER evaluation.  The Church-Rosser theorem states that
+| if any evaluation order will terminate, normal order will.  Along the way,
+| however, it may do extra work.
+| 
+| For reasons of efficiency, most functional languages use applicative
+| order evaluation.  You can get normal order when you want it in Scheme
+| with 'delay' and 'force'.  Also, most built-in primitives are
+| *functional forms*, rather than functions: they evaluate their
+| arguments when they have to [(+ 2 3) produces 5, not (+ 2 3)], but
+| they use normal order along the way.  For example, if and cond don't
+| evaluate unnecessary arguments at all (neither do and and or --
+| short-circuit evaluation).  Common Lisp allows you to define new
+| functional forms.  In lambda calculus, you can use normal order
+| evaluation whenever you want (evaluation order isn't part of the basic
+| rules), and built-in functions like math aren't special (we use
+| functions to represent numbers), so functional forms and functions
+| aren't different.
+| 
+| ----------------
+| Multiple parameters (tuples)
+| 
+| Let
+|     select_first   == Lx.Ly.x
+|     select_second  == Lx.Ly.y
+| 
+| Then let
+|     cons == La.Ld.Lx.x a d
+|     car == Ll.l select_first
+|     cdr == Ll.l select_second
+| 
+|     car (cons A B) == (Ll.l select_first) (cons A B)
+|         =>beta (cons A B) select_first
+|         == ((La.Ld.Lx.x a d) A B) select_first
+|         =>*beta (Lx.x A B) select_first
+|         =>beta select_first A B
+|         == (Lx.Ly.x) A B
+|         =>*beta A
+| 
+|     cdr (cons A B) == (Ll.l select_second) (cons A B)
+|         =>beta (cons A B) select_second
+|         == ((La.Ld.Lx.x a d) A B) select_second
+|         =>*beta (Lx.x A B) select_second
+|         =>beta select_second A B
+|         == (Lx.Ly.y) A B
+|         =>*beta B
+| 
+| Book shows how to do Booleans and control flow.
+| 
+| ----------------
+| Recursive functions
+| 
+| Note that our usual specification of recursive functions uses names that
+| are referred to recursively:
+| 
+|     factorial(n) = if n = 0 then 1 else n * factorial(n-1)
+| 
+| How do we do this in pure lambda calculus?
+| Depends on the notion of fixed point.
+| 
+| Use beta abstraction to get
+| 
+|     factorial = (Lf.Ln if n = 0 then 1 else n * f(n-1)) factorial
+| 
+| This is of the form     factorial = F factorial
+| What we need is a *fixed point* of F.
+| 
+| One can prove that Y F works, where Y == Lh.(Lx.h (x x))(Lx.h (x x)).
+| More on this in the text.
+| 
+| ----------------
+| Currying
+| 
+| functions of several arguments v. nested functions of one argument
+|     L[x,y].expr is equivalent to Lx.(Ly.expr).
+|     currying (named after Haskell Curry) is the process of turning
+|     the former into the latter.
+|     Example: (plus x y) is really ((plus x) y).
+|         (plus x) is a function of one argument that returns the
+|         sum of its argument and x.
+| 
+| We already saw how to do this in Scheme.
+| 
+| ----------------
+| higher-order functions (functional forms)
+|     (apply above)
+|     (curry above)
+|     compose
+|     map (apply-to-all)
+|     construct (constrct (f g h) x) == (fx gx hx)
+|     etc.
+| 
+|     Example:
+|         compose f g == Lx.(f (g x))
+|         given f = Lz.(square z), g = Ly.(abs y)
+|         compose f g
+|             == Lx.(Lz.(square z) (Ly.(abs y) x))
+|             == Lx.(square (Ly.(abs y) x))
+|             == Lx.(square (abs x))
+| 
+|         (f g x) == ((f g) x)
+|         (compose f g) x == (f (g x))
