@@ -55,7 +55,7 @@ token scan() {
         case ':':
             if ((c = getchar()) != '=') {
                 // fprintf(stderr, "error\n");
-                cerr << "error\n"
+                cerr << "error\n";
                 exit(1);
             } else {
                 c = getchar();
