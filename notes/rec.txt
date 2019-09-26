@@ -68,4 +68,76 @@ bool S(enum[] tokens) {
       -> ( cdr ' ( a Es ) Es ) $$
       -> ( cdr ' ( a E Es ) Es ) $$
       -> ...
-(d) 
+
+Ex
+
+S -> E S'
+S' -> epsilon | + S
+E -> num | ( S )
+
+Node E() {
+    token = next();
+    switch(token) {
+        case num:
+            return makeNode(num);
+        case "(":
+            return makeNode("(", S(), ")")
+    }
+}
+
+Node S'() {
+    token = next();
+    switch(token) {
+        case "+":
+            return makeNode("+", S());
+        default:
+            return null;
+    }
+}
+
+Node S() {
+    return nameNode(E(), S'());
+}
+
+Node makeNode() {
+
+}
+
+S -> num
+  -> ( S )
+  -> num + ( S )
+  -> ( S ) + S
+
+Node S() {
+    token = next();
+    switch(token) {
+        case "num":
+        case "(":
+            if (token == num) {
+                left = makeNode(num);
+                token = next();
+                Node n = newNode("+");
+                right = S;
+            }
+            if (token == "(") {
+                left = S;
+                Node root = new Node("+");
+                right = S;
+            }
+            break;
+            if (right == null) {
+                return left;
+            } else {
+                root.left = left;
+                root.right = right;
+            }
+    }
+}
+
+  +
+ / \
+3   4
+
+Synthesized Attribute 
+Inherited Attribute
+
