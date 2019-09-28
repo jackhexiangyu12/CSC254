@@ -109,6 +109,16 @@ token scan() {
                 return t_st;
             }
             break;
+        // case '$':
+        //     if ((c = getchar()) != '$') {
+        //         // fprintf(stderr, "error\n");
+        //         cerr << "error\n";
+        //         exit(1);
+        //     } else {
+        //         c = getchar();
+        //         return t_eof;
+        //     }
+        //     break;
         default:
             cout << "error" << endl;
             exit(1);
