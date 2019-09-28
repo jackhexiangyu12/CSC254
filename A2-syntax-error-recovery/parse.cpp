@@ -224,9 +224,9 @@ void factor () {
 
 void cond_op () {
     switch (input_token) {
-        case t_eq:
-            cout << "predict cond_op --> eq" << endl;
-            match (t_eq);
+        case t_eqeq:
+            cout << "predict cond_op --> eqeq" << endl;
+            match (t_eqeq);
             break;
         case t_neq:
             cout << "predict cond_op --> neq" << endl;
@@ -236,17 +236,17 @@ void cond_op () {
             cout << "predict cond_op --> gt" << endl;
             match (t_gt);
             break;
-        case t_lt:
-            cout << "predict cond_op --> lt" << endl;
-            match (t_lt);
+        case t_st:
+            cout << "predict cond_op --> st" << endl;
+            match (t_st);
             break;
         case t_gte:
             cout << "predict cond_op --> gte" << endl;
             match (t_gte);
             break;
-        case t_lte:
-            cout << "predict cond_op --> lte" << endl;
-            match (t_lte);
+        case t_ste:
+            cout << "predict cond_op --> ste" << endl;
+            match (t_ste);
             break;
     }
 }

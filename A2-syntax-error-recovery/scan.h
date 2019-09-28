@@ -4,7 +4,7 @@
 
 typedef enum {t_read, t_write, t_id, t_literal, t_gets,
                 t_add, t_sub, t_mul, t_div, t_lparen, t_rparen, t_eof,
-                t_if, t_while, t_end, t_eq, t_neq, t_gt, t_lt, t_gte, t_lte} token;
+                t_if, t_while, t_end, t_eqeq, t_neq, t_gt, t_st, t_gte, t_ste} token;
 
 #define MAX_TOKEN_LEN 100
 extern char token_image[MAX_TOKEN_LEN];
