@@ -87,20 +87,6 @@ void stmt_list () {
 
 void stmt () {
     switch (input_token) {
-        case t_if:
-            cout << "predict stmt --> if cond stmt_list end" << endl;
-            match (t_if);
-            cond ();
-            stmt_list ();
-            match (t_end);
-            break;
-        case t_while:
-            cout << "predict stmt --> while cond stmt_list end" << endl;
-            match (t_while);
-            cond ();
-            stmt_list ();
-            match (t_end);
-            break;
         case t_id:
             cout << "predict stmt --> id gets expr" << endl;
             match (t_id);
@@ -116,6 +102,20 @@ void stmt () {
             cout << "predict stmt --> write expr" << endl;
             match (t_write);
             expr ();
+            break;
+        case t_if:
+            cout << "predict stmt --> if cond stmt_list end" << endl;
+            match (t_if);
+            cond ();
+            stmt_list ();
+            match (t_end);
+            break;
+        case t_while:
+            cout << "predict stmt --> while cond stmt_list end" << endl;
+            match (t_while);
+            cond ();
+            stmt_list ();
+            match (t_end);
             break;
         default: error ();
     }
@@ -162,6 +162,15 @@ void term_tail () {
         case t_read:
         case t_write:
         case t_eof:
+        case t_if:
+        case t_while:
+        case t_end:
+        case t_eqeq:
+        case t_neq:
+        case t_gt:
+        case t_st:
+        case t_gte:
+        case t_ste:
             cout << "predict term_tail --> epsilon" << endl;
             break;          /*  epsilon production */
         default: error ();
@@ -197,6 +206,15 @@ void factor_tail () {
         case t_read:
         case t_write:
         case t_eof:
+        case t_if:
+        case t_while:
+        case t_end:
+        case t_eqeq:
+        case t_neq:
+        case t_gt:
+        case t_st:
+        case t_gte:
+        case t_ste:
             cout << "predict factor_tail --> epsilon" << endl;
             break;          /*  epsilon production */
         default: error ();
