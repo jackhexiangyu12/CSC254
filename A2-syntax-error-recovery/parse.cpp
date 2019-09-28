@@ -87,6 +87,20 @@ void stmt_list () {
 
 void stmt () {
     switch (input_token) {
+        case t_if:
+            cout << "predict stmt --> if cond stmt_list end" << endl;
+            match (t_if);
+            cond ();
+            stmt_list ();
+            match (t_end);
+            break;
+        case t_while:
+            cout << "predict stmt --> while cond stmt_list end" << endl;
+            match (t_while);
+            cond ();
+            stmt_list ();
+            match (t_end);
+            break;
         case t_id:
             cout << "predict stmt --> id gets expr" << endl;
             match (t_id);
@@ -102,20 +116,6 @@ void stmt () {
             cout << "predict stmt --> write expr" << endl;
             match (t_write);
             expr ();
-            break;
-        case t_if:
-            cout << "predict stmt --> if cond stmt_list end" << endl;
-            match (t_if);
-            cond ();
-            stmt_list ();
-            match (t_end);
-            break;
-        case t_while:
-            cout << "predict stmt --> while cond stmt_list end" << endl;
-            match (t_while);
-            cond ();
-            stmt_list ();
-            match (t_end);
             break;
         default: error ();
     }
