@@ -11,6 +11,9 @@
 #include <iostream>
 #include <cstdio>
 #include <cstdlib>
+#include <map>
+#include <list>
+#include <algorithm>
 
 #include "scan.h"
 
@@ -22,9 +25,105 @@ const char* names[] = {"read", "write", "id", "literal", "gets",
 
 static token input_token;
 
+map<string,list<token>> FIRST;
+map<string,list<token>> FOLLOW;
+map<string, bool> EPS;
+
+void init_first () {
+    list<token> first_p = {t_id, t_read, t_write, t_if, t_while, t_eof};
+    list<token> first_sl = {t_id, t_read, t_write, t_if, t_while};
+    list<token> first_s = {t_id, t_read, t_write, t_if, t_while};
+    list<token> first_c = {t_lparen, t_id, t_literal};
+    list<token> first_e = {t_lparen, t_id, t_literal};
+    list<token> first_tt = {t_add, t_sub};
+    list<token> first_t = {t_lparen, t_id, t_literal};
+    list<token> first_ft = {t_mul, t_div};
+    list<token> first_f = {t_lparen, t_id, t_literal};
+    list<token> first_ro = {t_eqeq, t_neq, t_gt, t_st, t_gte, t_ste};
+    list<token> first_ao = {t_add, t_sub};
+    list<token> first_mo = {t_mul, t_div};
+
+    FIRST.insert({"P", first_p});
+    FIRST.insert({"SL", first_sl});
+    FIRST.insert({"S", first_s});
+    FIRST.insert({"C", first_c});
+    FIRST.insert({"E", first_e});
+    FIRST.insert({"TT", first_tt});
+    FIRST.insert({"T", first_t});
+    FIRST.insert({"FT", first_ft});
+    FIRST.insert({"F", first_f});
+    FIRST.insert({"ro", first_ro});
+    FIRST.insert({"ao", first_ao});
+    FIRST.insert({"mo", first_mo});
+}
+
+void init_follow () {
+    list<token> follow_p = {};
+    list<token> follow_sl = {t_end, t_eof};
+    list<token> follow_s = {t_id, t_read, t_write, t_if, t_while, t_end, t_eof};
+    list<token> follow_c = {t_id, t_read, t_write, t_if, t_while, t_end};
+    list<token> follow_e = {t_rparen, t_eqeq, t_neq, t_gt, t_st, t_gte, t_ste, t_id, t_read, t_write, t_if, t_while, t_end};
+    list<token> follow_tt = {t_rparen, t_eqeq, t_neq, t_gt, t_st, t_gte, t_ste, t_id, t_read, t_write, t_if, t_while, t_end};
+    list<token> follow_t = {t_add, t_sub, t_rparen, t_eqeq, t_neq, t_gt, t_st, t_gte, t_ste, t_id, t_read, t_write, t_if, t_while, t_end};
+    list<token> follow_ft = {t_add, t_sub, t_rparen, t_eqeq, t_neq, t_gt, t_st, t_gte, t_ste, t_id, t_read, t_write, t_if, t_while, t_end};
+    list<token> follow_f = {t_mul, t_div, t_add, t_sub, t_rparen, t_eqeq, t_neq, t_gt, t_st, t_gte, t_ste, t_id, t_read, t_write, t_if, t_while, t_end};
+    list<token> follow_ro = {t_lparen, t_id, t_literal};
+    list<token> follow_ao = {t_lparen, t_id, t_literal};
+    list<token> follow_mo = {t_lparen, t_id, t_literal};
+
+    FOLLOW.insert({"P", follow_p});
+    FOLLOW.insert({"SL", follow_sl});
+    FOLLOW.insert({"S", follow_s});
+    FOLLOW.insert({"C", follow_c});
+    FOLLOW.insert({"E", follow_e});
+    FOLLOW.insert({"TT", follow_tt});
+    FOLLOW.insert({"T", follow_t});
+    FOLLOW.insert({"FT", follow_ft});
+    FOLLOW.insert({"F", follow_f});
+    FOLLOW.insert({"ro", follow_ro});
+    FOLLOW.insert({"ao", follow_ao});
+    FOLLOW.insert({"mo", follow_mo});
+}
+
+void init_eps () {
+    EPS.insert({"P", false});
+    EPS.insert({"SL", true});
+    EPS.insert({"S", false});
+    EPS.insert({"C", false});
+    EPS.insert({"E", false});
+    EPS.insert({"TT", true});
+    EPS.insert({"T", false});
+    EPS.insert({"FT", true});
+    EPS.insert({"F", false});
+    EPS.insert({"ro", false});
+    EPS.insert({"ao", false});
+    EPS.insert({"mo", false});
+}
+
 void error () {
     cout << "syntax error" << endl;
     exit (1);
+}
+
+void report_error () {
+    cout << "report syntax error" << endl;
+}
+
+void check_for_errors (string symbol) {
+    list<token> first_curr = FIRST[symbol];
+    list<token> follow_curr = FOLLOW[symbol];
+    bool eps_curr = EPS[symbol];
+
+    if (!(find(first_curr.begin(), first_curr.end(), input_token) != first_curr.end() || eps_curr)) {
+        report_error();
+        do {
+
+        } while (!(
+            find(first_curr.begin(), first_curr.end(), input_token) != first_curr.end()
+            || find(follow_curr.begin(), follow_curr.end(), input_token) != follow_curr.end()
+            || input_token == t_eof
+        ));
+    }
 }
 
 void match (token expected) {
@@ -52,6 +151,7 @@ void add_op ();
 void mul_op ();
 
 void program () {
+    check_for_errors ("P");
     switch (input_token) {
         case t_id:
         case t_read:
@@ -68,6 +168,7 @@ void program () {
 }
 
 void stmt_list () {
+    check_for_errors ("SL");
     switch (input_token) {
         case t_id:
         case t_read:
@@ -87,6 +188,7 @@ void stmt_list () {
 }
 
 void stmt () {
+    check_for_errors ("S");
     switch (input_token) {
         case t_id:
             cout << "predict stmt --> id gets expr" << endl;
@@ -123,6 +225,7 @@ void stmt () {
 }
 
 void cond () {
+    check_for_errors ("C");
     switch (input_token) {
         case t_lparen:
         case t_id:
@@ -137,6 +240,7 @@ void cond () {
 }
 
 void expr () {
+    check_for_errors ("E");
     switch (input_token) {
         case t_id:
         case t_literal:
@@ -150,6 +254,7 @@ void expr () {
 }
 
 void term_tail () {
+    check_for_errors ("TT");
     switch (input_token) {
         case t_add:
         case t_sub:
@@ -179,6 +284,7 @@ void term_tail () {
 }
 
 void term () {
+    check_for_errors ("T");
     switch (input_token) {
         case t_id:
         case t_literal:
@@ -192,6 +298,7 @@ void term () {
 }
 
 void factor_tail () {
+    check_for_errors ("FT");
     switch (input_token) {
         case t_mul:
         case t_div:
@@ -223,6 +330,7 @@ void factor_tail () {
 }
 
 void factor () {
+    check_for_errors ("F");
     switch (input_token) {
         case t_id :
             cout << "predict factor --> id" << endl;
@@ -243,6 +351,7 @@ void factor () {
 }
 
 void cond_op () {
+    check_for_errors ("ro");
     switch (input_token) {
         case t_eqeq:
             cout << "predict cond_op --> eqeq" << endl;
@@ -272,6 +381,7 @@ void cond_op () {
 }
 
 void add_op () {
+    check_for_errors ("ao");
     switch (input_token) {
         case t_add:
             cout << "predict add_op --> add" << endl;
@@ -286,6 +396,7 @@ void add_op () {
 }
 
 void mul_op () {
+    check_for_errors ("mo");
     switch (input_token) {
         case t_mul:
             cout << "predict mul_op --> mul" << endl;
@@ -300,6 +411,10 @@ void mul_op () {
 }
 
 int main () {
+    init_first ();
+    init_follow ();
+    init_eps ();
+
     input_token = scan ();
     program ();
     return 0;
