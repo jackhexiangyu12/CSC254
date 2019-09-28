@@ -78,6 +78,7 @@ void stmt_list () {
             stmt ();
             stmt_list ();
             break;
+        case t_end:
         case t_eof:
             cout << "predict stmt_list --> epsilon" << endl;
             break;          /*  epsilon production */
