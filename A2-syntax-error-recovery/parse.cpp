@@ -17,7 +17,8 @@
 using namespace std;
 
 const char* names[] = {"read", "write", "id", "literal", "gets",
-                       "add", "sub", "mul", "div", "lparen", "rparen", "eof"};
+                       "add", "sub", "mul", "div", "lparen", "rparen", "eof"
+                       "if", "while", "end", "eqeq", "neq", "gt", "st", "gte", "ste"};
 
 static token input_token;
 
