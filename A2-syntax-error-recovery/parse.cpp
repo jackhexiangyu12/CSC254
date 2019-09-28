@@ -28,12 +28,10 @@ void error () {
 }
 
 void match (token expected) {
-    cout << "TEST " << input_token << endl;
-    cout << "TEST " << expected << endl;
     if (input_token == expected) {
-        cout << "matched " << names[input_token] << endl;
+        cout << "matched " << names[input_token];
         if (input_token == t_id || input_token == t_literal)
-            cout << ": " << token_image << endl;
+            cout << ": " << token_image;
         cout << endl;
         input_token = scan ();
     }
