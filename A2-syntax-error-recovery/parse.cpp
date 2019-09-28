@@ -40,11 +40,13 @@ void match (token expected) {
 void program ();
 void stmt_list ();
 void stmt ();
+void cond ();
 void expr ();
 void term_tail ();
 void term ();
 void factor_tail ();
 void factor ();
+void cond_op ();
 void add_op ();
 void mul_op ();
 
@@ -53,6 +55,8 @@ void program () {
         case t_id:
         case t_read:
         case t_write:
+        case t_if:
+        case t_while:
         case t_eof:
             cout << "predict program --> stmt_list eof" << endl;
             stmt_list ();
@@ -67,6 +71,8 @@ void stmt_list () {
         case t_id:
         case t_read:
         case t_write:
+        case t_if:
+        case t_while:
             cout << "predict stmt_list --> stmt stmt_list" << endl;
             stmt ();
             stmt_list ();
@@ -94,6 +100,34 @@ void stmt () {
         case t_write:
             cout << "predict stmt --> write expr" << endl;
             match (t_write);
+            expr ();
+            break;
+        case t_if:
+            cout << "predict stmt --> if cond stmt_list end" << endl;
+            match (t_if);
+            cond ();
+            stmt_list ();
+            match (t_end);
+            break;
+        case t_while:
+            cout << "predict stmt --> while cond stmt_list end" << endl;
+            match (t_while);
+            cond ();
+            stmt_list ();
+            match (t_end);
+            break;
+        default: error ();
+    }
+}
+
+void cond () {
+    switch (input_token) {
+        case t_lparen:
+        case t_id:
+        case t_literal:
+            cout << "predict cond -> expr cond_op expr" << endl;
+            expr ();
+            cond_op ();
             expr ();
             break;
         default: error ();
@@ -185,6 +219,35 @@ void factor () {
             match (t_rparen);
             break;
         default: error ();
+    }
+}
+
+void cond_op () {
+    switch (input_token) {
+        case t_eq:
+            cout << "predict cond_op --> eq" << endl;
+            match (t_eq);
+            break;
+        case t_neq:
+            cout << "predict cond_op --> neq" << endl;
+            match (t_neq);
+            break;
+        case t_gt:
+            cout << "predict cond_op --> gt" << endl;
+            match (t_gt);
+            break;
+        case t_lt:
+            cout << "predict cond_op --> lt" << endl;
+            match (t_lt);
+            break;
+        case t_gte:
+            cout << "predict cond_op --> gte" << endl;
+            match (t_gte);
+            break;
+        case t_lte:
+            cout << "predict cond_op --> lte" << endl;
+            match (t_lte);
+            break;
     }
 }
 
