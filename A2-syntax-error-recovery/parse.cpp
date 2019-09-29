@@ -9,7 +9,6 @@
 // #include "stdlib.h"
 
 #include <iostream>
-#include <cstdio>
 #include <cstdlib>
 #include <map>
 #include <list>
@@ -101,12 +100,13 @@ void init_eps () {
 }
 
 void error () {
-    cout << "syntax error" << endl;
+    cout << "report  syntax error in default case" << endl;
     exit (1);
 }
 
-void report_error () {
-    cout << "report syntax error" << endl;
+void report_error (string symbol) {
+    cout << "report  syntax error in " << symbol << endl;
+    return;
 }
 
 void check_for_errors (string symbol) {
@@ -115,9 +115,9 @@ void check_for_errors (string symbol) {
     bool eps_curr = EPS[symbol];
 
     if (!(find(first_curr.begin(), first_curr.end(), input_token) != first_curr.end() || eps_curr)) {
-        report_error();
+        report_error(symbol);
         do {
-
+            input_token = scan();
         } while (!(
             find(first_curr.begin(), first_curr.end(), input_token) != first_curr.end()
             || find(follow_curr.begin(), follow_curr.end(), input_token) != follow_curr.end()
@@ -134,7 +134,7 @@ void match (token expected) {
         cout << endl;
         input_token = scan ();
     }
-    else error ();
+    else report_error ("match");
 }
 
 void program ();
