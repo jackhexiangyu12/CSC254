@@ -10,8 +10,11 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <cstring>
+#include <cctype>
 #include <map>
 #include <list>
+#include <stack>
 #include <algorithm>
 
 #include "scan.h"
@@ -27,6 +30,73 @@ static token input_token;
 map<string,list<token>> FIRST;
 map<string,list<token>> FOLLOW;
 map<string, bool> EPS;
+stack<string> S;
+
+string return_token () {
+    string res = "";
+    switch (input_token) {
+        case t_read:
+        case t_write:
+        case t_if:
+        case t_while:
+            res = names[input_token];
+            break;
+        case t_id:
+            res = "id \"" + string(token_image) + "\"";
+            break;
+        case t_literal:
+            res = "num \"" + string(token_image) + "\"";
+            break;
+        case t_gets:
+            res = ":=";
+            break;
+        case t_add:
+            res = "+";
+            break;
+        case t_sub:
+            res = "-";
+            break;
+        case t_mul:
+            res = "*";
+            break;
+        case t_div:
+            res = "/";
+            break;
+        case t_lparen:
+            res = "(";
+            break;
+        case t_rparen:
+            res = ")";
+            break;
+        case t_eqeq:
+            res = "==";
+            break;
+        case t_neq:
+            res = "!=";
+            break;
+        case t_gt:
+            res = ">";
+            break;
+        case t_st:
+            res = "<";
+            break;
+        case t_gte:
+            res = ">=";
+            break;
+        case t_ste:
+            res = "<=";
+            break;
+        case t_end:
+        case t_eof:
+            res = "";
+            break;
+        default:
+            res = "error";
+            break;
+    }
+
+    return res;
+}
 
 void init_first () {
     list<token> first_p = {t_id, t_read, t_write, t_if, t_while, t_eof};
@@ -106,7 +176,6 @@ void error () {
 
 void report_error (string symbol) {
     cout << "report  syntax error in " << symbol << endl;
-    return;
 }
 
 void check_for_errors (string symbol) {
@@ -126,8 +195,11 @@ void check_for_errors (string symbol) {
     }
 }
 
-void match (token expected) {
+string match (token expected) {
+    string res = "";
     if (input_token == expected) {
+        res += return_token ();
+
         cout << "matched " << names[input_token];
         if (input_token == t_id || input_token == t_literal)
             cout << ": " << token_image;
@@ -135,23 +207,27 @@ void match (token expected) {
         input_token = scan ();
     }
     else report_error ("match");
+
+    return res;
 }
 
-void program ();
-void stmt_list ();
-void stmt ();
-void cond ();
-void expr ();
-void term_tail ();
-void term ();
-void factor_tail ();
-void factor ();
-void cond_op ();
-void add_op ();
-void mul_op ();
+string program ();
+string stmt_list ();
+string stmt ();
+string cond ();
+string expr ();
+string term_tail ();
+string term ();
+string factor_tail ();
+string factor ();
+string cond_op ();
+string add_op ();
+string mul_op ();
 
-void program () {
+string program () {
     check_for_errors ("P");
+
+    string res = "(program ";
     switch (input_token) {
         case t_id:
         case t_read:
@@ -160,15 +236,21 @@ void program () {
         case t_while:
         case t_eof:
             cout << "predict program --> stmt_list eof" << endl;
-            stmt_list ();
-            match (t_eof);
+            res += stmt_list ();
+            res += " ";
+            res += match (t_eof);
             break;
         default: report_error ("default case");
     }
+    res += ")";
+
+    return res;
 }
 
-void stmt_list () {
+string stmt_list () {
     check_for_errors ("SL");
+
+    string res = "";
     switch (input_token) {
         case t_id:
         case t_read:
@@ -176,8 +258,11 @@ void stmt_list () {
         case t_if:
         case t_while:
             cout << "predict stmt_list --> stmt stmt_list" << endl;
-            stmt ();
-            stmt_list ();
+            res += "[ ";
+            res += stmt ();
+            res += " ";
+            res += stmt_list ();
+            res += "]";
             break;
         case t_end:
         case t_eof:
@@ -185,83 +270,128 @@ void stmt_list () {
             break;          /*  epsilon production */
         default: report_error ("default case");
     }
+
+    return res;
 }
 
-void stmt () {
+string stmt () {
     check_for_errors ("S");
+
+    string res = "(";
+    string tmp = "";
     switch (input_token) {
         case t_id:
             cout << "predict stmt --> id gets expr" << endl;
-            match (t_id);
-            match (t_gets);
-            expr ();
+            tmp += match (t_id);
+            res += match (t_gets);
+            res += " ";
+            res += tmp;
+            res += " ";
+            res += expr ();
             break;
         case t_read:
             cout << "predict stmt --> read id" << endl;
-            match (t_read);
-            match (t_id);
+            res += match (t_read);
+            res += " ";
+            res += match (t_id);
             break;
         case t_write:
             cout << "predict stmt --> write expr" << endl;
-            match (t_write);
-            expr ();
+            res += match (t_write);
+            res += " ";
+            res += expr ();
             break;
         case t_if:
             cout << "predict stmt --> if cond stmt_list end" << endl;
-            match (t_if);
-            cond ();
-            stmt_list ();
-            match (t_end);
+            res += match (t_if);
+            res += " ";
+            res += cond ();
+            res += " ";
+            res += stmt_list ();
+            res += " ";
+            res += match (t_end);
             break;
         case t_while:
             cout << "predict stmt --> while cond stmt_list end" << endl;
-            match (t_while);
-            cond ();
-            stmt_list ();
-            match (t_end);
+            res += match (t_while);
+            res += " ";
+            res += cond ();
+            res += " ";
+            res += stmt_list ();
+            res += " ";
+            res += match (t_end);
             break;
         default: report_error ("default case");
     }
+    res += ")";
+
+    return res;
 }
 
-void cond () {
+string cond () {
     check_for_errors ("C");
+
+    string res = "(";
+    string tmp = "";
     switch (input_token) {
         case t_lparen:
         case t_id:
         case t_literal:
             cout << "predict cond -> expr cond_op expr" << endl;
-            expr ();
-            cond_op ();
-            expr ();
+            tmp += expr ();
+            res += cond_op ();
+            res += " ";
+            res += tmp;
+            res += " ";
+            res += expr ();
             break;
         default: report_error ("default case");
     }
+    res += ")";
+
+    return res;
 }
 
-void expr () {
+string expr () {
     check_for_errors ("E");
+
+    string res = "(";
+    // string tmp = "";
     switch (input_token) {
         case t_id:
         case t_literal:
         case t_lparen:
             cout << "predict expr --> term term_tail" << endl;
-            term ();
-            term_tail ();
+            // tmp += term ();
+            // S.push (tmp);
+            S.push (term ());
+            res += term_tail ();
             break;
         default: report_error ("default case");
     }
+    res += ")";
+
+    return res;
 }
 
-void term_tail () {
+string term_tail () {
     check_for_errors ("TT");
+
+    string res = "(";
+    // string tmp = "";
     switch (input_token) {
         case t_add:
         case t_sub:
             cout << "predict term_tail --> add_op term term_tail" << endl;
-            add_op ();
-            term ();
-            term_tail ();
+            res += add_op ();
+            res += " ";
+            res += S.top ();
+            S.pop ();
+            res += " ";
+            // tmp += term ();
+            // S.push (tmp);
+            S.push (term ());
+            res += term_tail ();
             break;
         case t_rparen:
         case t_id:
@@ -278,34 +408,56 @@ void term_tail () {
         case t_gte:
         case t_ste:
             cout << "predict term_tail --> epsilon" << endl;
+            res += S.top ();
+            S.pop ();
             break;          /*  epsilon production */
         default: report_error ("default case");
     }
+    res += ")";
+
+    return res;
 }
 
-void term () {
+string term () {
     check_for_errors ("T");
+
+    string res = "(";
+    // string tmp = "";
     switch (input_token) {
         case t_id:
         case t_literal:
         case t_lparen:
             cout << "predict term --> factor factor_tail" << endl;
-            factor ();
-            factor_tail ();
+            // tmp += factor ();
+            // S.push (tmp);
+            S.push (factor ());
+            res += factor_tail ();
             break;
         default: report_error ("default case");
     }
+    res += ")";
+
+    return res;
 }
 
-void factor_tail () {
+string factor_tail () {
     check_for_errors ("FT");
+
+    string res = "(";
+    // string tmp = "";
     switch (input_token) {
         case t_mul:
         case t_div:
             cout << "predict factor_tail --> mul_op factor factor_tail" << endl;
-            mul_op ();
-            factor ();
-            factor_tail ();
+            res += mul_op ();
+            res += " ";
+            res += S.top ();
+            S.pop ();
+            res += " ";
+            // tmp += factor ();
+            // S.push (tmp);
+            S.push (factor ());
+            res += factor_tail ();
             break;
         case t_add:
         case t_sub:
@@ -324,91 +476,113 @@ void factor_tail () {
         case t_gte:
         case t_ste:
             cout << "predict factor_tail --> epsilon" << endl;
+            res += S.top ();
+            S.pop ();
             break;          /*  epsilon production */
         default: report_error ("default case");
     }
+    res += ")";
+
+    return res;
 }
 
-void factor () {
+string factor () {
     check_for_errors ("F");
+
+    string res = "(";
     switch (input_token) {
         case t_id :
             cout << "predict factor --> id" << endl;
-            match (t_id);
+            res += match (t_id);
             break;
         case t_literal:
             cout << "predict factor --> literal" << endl;
-            match (t_literal);
+            res += match (t_literal);
             break;
         case t_lparen:
             cout << "predict factor --> lparen expr rparen" << endl;
-            match (t_lparen);
-            expr ();
-            match (t_rparen);
+            res += match (t_lparen);
+            res += expr ();
+            res += match (t_rparen);
             break;
         default: report_error ("default case");
     }
+    res += ")";
+
+    return res;
 }
 
-void cond_op () {
+string cond_op () {
     check_for_errors ("ro");
+
+    string res ="";
     switch (input_token) {
         case t_eqeq:
             cout << "predict cond_op --> eqeq" << endl;
-            match (t_eqeq);
+            res += match (t_eqeq);
             break;
         case t_neq:
             cout << "predict cond_op --> neq" << endl;
-            match (t_neq);
+            res += match (t_neq);
             break;
         case t_gt:
             cout << "predict cond_op --> gt" << endl;
-            match (t_gt);
+            res += match (t_gt);
             break;
         case t_st:
             cout << "predict cond_op --> st" << endl;
-            match (t_st);
+            res += match (t_st);
             break;
         case t_gte:
             cout << "predict cond_op --> gte" << endl;
-            match (t_gte);
+            res += match (t_gte);
             break;
         case t_ste:
             cout << "predict cond_op --> ste" << endl;
-            match (t_ste);
+            res += match (t_ste);
             break;
         default: report_error ("default case");
     }
+
+    return res;
 }
 
-void add_op () {
+string add_op () {
     check_for_errors ("ao");
+
+    string res = "";
     switch (input_token) {
         case t_add:
             cout << "predict add_op --> add" << endl;
-            match (t_add);
+            res += match (t_add);
             break;
         case t_sub:
             cout << "predict add_op --> sub" << endl;
-            match (t_sub);
+            res += match (t_sub);
             break;
         default: report_error ("default case");
     }
+
+    return res;
 }
 
-void mul_op () {
+string mul_op () {
     check_for_errors ("mo");
+
+    string res = "";
     switch (input_token) {
         case t_mul:
             cout << "predict mul_op --> mul" << endl;
-            match (t_mul);
+            res += match (t_mul);
             break;
         case t_div:
             cout << "predict mul_op --> div" << endl;
-            match (t_div);
+            res += match (t_div);
             break;
         default: report_error ("default case");
     }
+
+    return res;
 }
 
 int main () {
@@ -417,6 +591,7 @@ int main () {
     init_eps ();
 
     input_token = scan ();
-    program ();
+    cout << program () << endl;
+
     return 0;
 }
