@@ -163,7 +163,7 @@ void program () {
             stmt_list ();
             match (t_eof);
             break;
-        default: error ();
+        default: report_error ("default case");
     }
 }
 
@@ -183,7 +183,7 @@ void stmt_list () {
         case t_eof:
             cout << "predict stmt_list --> epsilon" << endl;
             break;          /*  epsilon production */
-        default: error ();
+        default: report_error ("default case");
     }
 }
 
@@ -220,7 +220,7 @@ void stmt () {
             stmt_list ();
             match (t_end);
             break;
-        default: error ();
+        default: report_error ("default case");
     }
 }
 
@@ -235,7 +235,7 @@ void cond () {
             cond_op ();
             expr ();
             break;
-        default: error ();
+        default: report_error ("default case");
     }
 }
 
@@ -249,7 +249,7 @@ void expr () {
             term ();
             term_tail ();
             break;
-        default: error ();
+        default: report_error ("default case");
     }
 }
 
@@ -279,7 +279,7 @@ void term_tail () {
         case t_ste:
             cout << "predict term_tail --> epsilon" << endl;
             break;          /*  epsilon production */
-        default: error ();
+        default: report_error ("default case");
     }
 }
 
@@ -293,7 +293,7 @@ void term () {
             factor ();
             factor_tail ();
             break;
-        default: error ();
+        default: report_error ("default case");
     }
 }
 
@@ -325,7 +325,7 @@ void factor_tail () {
         case t_ste:
             cout << "predict factor_tail --> epsilon" << endl;
             break;          /*  epsilon production */
-        default: error ();
+        default: report_error ("default case");
     }
 }
 
@@ -346,7 +346,7 @@ void factor () {
             expr ();
             match (t_rparen);
             break;
-        default: error ();
+        default: report_error ("default case");
     }
 }
 
@@ -377,6 +377,7 @@ void cond_op () {
             cout << "predict cond_op --> ste" << endl;
             match (t_ste);
             break;
+        default: report_error ("default case");
     }
 }
 
@@ -391,7 +392,7 @@ void add_op () {
             cout << "predict add_op --> sub" << endl;
             match (t_sub);
             break;
-        default: error ();
+        default: report_error ("default case");
     }
 }
 
@@ -406,7 +407,7 @@ void mul_op () {
             cout << "predict mul_op --> div" << endl;
             match (t_div);
             break;
-        default: error ();
+        default: report_error ("default case");
     }
 }
 
