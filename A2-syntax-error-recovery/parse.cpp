@@ -100,7 +100,7 @@ void init_eps () {
 }
 
 void error () {
-    cout << "report  syntax error in default case" << endl;
+    cout << "syntax error" << endl;
     exit (1);
 }
 
