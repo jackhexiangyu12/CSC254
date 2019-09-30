@@ -27,11 +27,14 @@ const char* names[] = {"read", "write", "id", "literal", "gets",
 
 static token input_token;
 
+// FIRST FOLLOW and EPS for recovery
 map<string,list<token>> FIRST;
 map<string,list<token>> FOLLOW;
 map<string, bool> EPS;
+// Stack for syntax tree generation
 stack<string> S;
 
+// Convert current token to string
 string return_token () {
     string res = "";
     switch (input_token) {
@@ -42,10 +45,10 @@ string return_token () {
             res = names[input_token];
             break;
         case t_id:
-            res = "id \"" + string(token_image) + "\"";
+            res = "(id \"" + string(token_image) + "\")";
             break;
         case t_literal:
-            res = "num \"" + string(token_image) + "\"";
+            res = "(num \"" + string(token_image) + "\")";
             break;
         case t_gets:
             res = ":=";
@@ -98,6 +101,7 @@ string return_token () {
     return res;
 }
 
+// Init FIRST
 void init_first () {
     list<token> first_p = {t_id, t_read, t_write, t_if, t_while, t_eof};
     list<token> first_sl = {t_id, t_read, t_write, t_if, t_while};
@@ -126,6 +130,7 @@ void init_first () {
     FIRST.insert({"mo", first_mo});
 }
 
+// Init FOLLOW
 void init_follow () {
     list<token> follow_p = {};
     list<token> follow_sl = {t_end, t_eof};
@@ -154,6 +159,7 @@ void init_follow () {
     FOLLOW.insert({"mo", follow_mo});
 }
 
+// Init EPS
 void init_eps () {
     EPS.insert({"P", false});
     EPS.insert({"SL", true});
@@ -237,7 +243,6 @@ string program () {
         case t_eof:
             cout << "predict program --> stmt_list eof" << endl;
             res += stmt_list ();
-            res += " ";
             res += match (t_eof);
             break;
         default: report_error ("default case");
@@ -251,6 +256,7 @@ string stmt_list () {
     check_for_errors ("SL");
 
     string res = "";
+    string tmp = "";
     switch (input_token) {
         case t_id:
         case t_read:
@@ -258,15 +264,16 @@ string stmt_list () {
         case t_if:
         case t_while:
             cout << "predict stmt_list --> stmt stmt_list" << endl;
-            res += "[ ";
+            res += "[";
             res += stmt ();
-            res += " ";
-            res += stmt_list ();
-            res += "]";
+            tmp += stmt_list ();
+            if (tmp.compare("]") != 0) res = res + " " + tmp;
+            else res = res + tmp;
             break;
         case t_end:
         case t_eof:
             cout << "predict stmt_list --> epsilon" << endl;
+            res += "]";
             break;          /*  epsilon production */
         default: report_error ("default case");
     }
@@ -308,7 +315,6 @@ string stmt () {
             res += cond ();
             res += " ";
             res += stmt_list ();
-            res += " ";
             res += match (t_end);
             break;
         case t_while:
@@ -318,7 +324,6 @@ string stmt () {
             res += cond ();
             res += " ";
             res += stmt_list ();
-            res += " ";
             res += match (t_end);
             break;
         default: report_error ("default case");
@@ -331,7 +336,7 @@ string stmt () {
 string cond () {
     check_for_errors ("C");
 
-    string res = "(";
+    string res = "";
     string tmp = "";
     switch (input_token) {
         case t_lparen:
@@ -347,7 +352,6 @@ string cond () {
             break;
         default: report_error ("default case");
     }
-    res += ")";
 
     return res;
 }
@@ -355,21 +359,17 @@ string cond () {
 string expr () {
     check_for_errors ("E");
 
-    string res = "(";
-    // string tmp = "";
+    string res = "";
     switch (input_token) {
         case t_id:
         case t_literal:
         case t_lparen:
             cout << "predict expr --> term term_tail" << endl;
-            // tmp += term ();
-            // S.push (tmp);
             S.push (term ());
             res += term_tail ();
             break;
         default: report_error ("default case");
     }
-    res += ")";
 
     return res;
 }
@@ -377,21 +377,20 @@ string expr () {
 string term_tail () {
     check_for_errors ("TT");
 
-    string res = "(";
-    // string tmp = "";
+    string res = "";
     switch (input_token) {
         case t_add:
         case t_sub:
             cout << "predict term_tail --> add_op term term_tail" << endl;
+            res += "(";
             res += add_op ();
             res += " ";
             res += S.top ();
             S.pop ();
             res += " ";
-            // tmp += term ();
-            // S.push (tmp);
             S.push (term ());
             res += term_tail ();
+            res += ")";
             break;
         case t_rparen:
         case t_id:
@@ -413,7 +412,6 @@ string term_tail () {
             break;          /*  epsilon production */
         default: report_error ("default case");
     }
-    res += ")";
 
     return res;
 }
@@ -421,21 +419,17 @@ string term_tail () {
 string term () {
     check_for_errors ("T");
 
-    string res = "(";
-    // string tmp = "";
+    string res = "";
     switch (input_token) {
         case t_id:
         case t_literal:
         case t_lparen:
             cout << "predict term --> factor factor_tail" << endl;
-            // tmp += factor ();
-            // S.push (tmp);
             S.push (factor ());
             res += factor_tail ();
             break;
         default: report_error ("default case");
     }
-    res += ")";
 
     return res;
 }
@@ -443,21 +437,20 @@ string term () {
 string factor_tail () {
     check_for_errors ("FT");
 
-    string res = "(";
-    // string tmp = "";
+    string res = "";
     switch (input_token) {
         case t_mul:
         case t_div:
             cout << "predict factor_tail --> mul_op factor factor_tail" << endl;
+            res += "(";
             res += mul_op ();
             res += " ";
             res += S.top ();
             S.pop ();
             res += " ";
-            // tmp += factor ();
-            // S.push (tmp);
             S.push (factor ());
             res += factor_tail ();
+            res += ")";
             break;
         case t_add:
         case t_sub:
@@ -481,7 +474,6 @@ string factor_tail () {
             break;          /*  epsilon production */
         default: report_error ("default case");
     }
-    res += ")";
 
     return res;
 }
@@ -489,7 +481,7 @@ string factor_tail () {
 string factor () {
     check_for_errors ("F");
 
-    string res = "(";
+    string res = "";
     switch (input_token) {
         case t_id :
             cout << "predict factor --> id" << endl;
@@ -507,7 +499,6 @@ string factor () {
             break;
         default: report_error ("default case");
     }
-    res += ")";
 
     return res;
 }
