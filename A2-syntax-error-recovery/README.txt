@@ -10,7 +10,6 @@ Build and Run
     cd to directory
     make
     make test NAME_OF_TEST_FILE
-    make clean
 
     Replace NAME_OF_TEST_FILE with the full name of the test file. For example, "make test sample.txt". 
 
