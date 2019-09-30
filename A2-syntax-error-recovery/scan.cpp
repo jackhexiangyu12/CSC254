@@ -72,8 +72,7 @@ token scan() {
         case ')': c = getchar(); return t_rparen;
         case '=':
             if ((c = getchar()) != '=') {
-                // fprintf(stderr, "error\n");
-                cerr << "scanner error\n";
+                cerr << "scanner error" << endl;
                 exit(1);
             } else {
                 c = getchar();
@@ -82,8 +81,7 @@ token scan() {
             break;
         case '!':
             if ((c = getchar()) != '=') {
-                // fprintf(stderr, "error\n");
-                cerr << "scanner error\n";
+                cerr << "scanner error" << endl;
                 exit(1);
             } else {
                 c = getchar();
