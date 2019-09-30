@@ -26,6 +26,7 @@ const char* names[] = {"read", "write", "id", "literal", "gets",
                        "if", "while", "end", "eqeq", "neq", "gt", "st", "gte", "ste"};
 
 static token input_token;
+static bool exist_error;
 
 // FIRST FOLLOW and EPS for recovery
 map<string,list<token>> FIRST;
@@ -176,12 +177,13 @@ void init_eps () {
 }
 
 void error () {
-    cout << "syntax error" << endl;
-    exit (1);
+    cerr << "syntax error" << endl;
+    exit(1);
 }
 
 void report_error (string symbol) {
     cout << "report  syntax error in " << symbol << endl;
+    exist_error = true;
 }
 
 void check_for_errors (string symbol) {
@@ -582,7 +584,12 @@ int main () {
     init_eps ();
 
     input_token = scan ();
-    cout << program () << endl;
+    exist_error = false;
+    string res = program ();
+    
+    cout << endl;
+    if (exist_error) error ();
+    else cout << res << endl;
 
     return 0;
 }
