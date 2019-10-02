@@ -1,3 +1,5 @@
+#load "str.cma";;
+
 (*******************************************************************
     LL(1) parser generator, syntax tree builder for an extended
     calculator language, and (skeleton of an) interpreter for the
