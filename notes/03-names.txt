@@ -266,21 +266,25 @@ Storage Management
 ------------------
 
     Static allocation for
-        code
+        most code
         globals
         "own" variables
         explicit constants (including strings, sets, other aggregates)
             scalars may be stored in the instructions themselves
-
+        compiler-produced data/tables (symbol tables, exceptions)
     Central stack (chap. 8) for
         parameters
         local variables
         temporaries
+        return value
+        return address
+        saved registers
         bookkeeping information
     Why a stack?
         allocate space for recursive routines
         reuse space
         minimize management overhead
+    Figure 3.1
 
     Heap (chap. 7) for
         dynamic allocation
