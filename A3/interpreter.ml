@@ -560,10 +560,6 @@ and ast_c = (string * ast_e * ast_e);;
 let rec ast_ize_P (p:parse_tree) : ast_sl =
   (* your code should replace the following line *)
   (* [] *)
-
-  (* let PT_nt (n1, n2) = p in  *)
-  (* print_string n1; print_string "\n"; *)
-
   match p with
     | PT_nt (n, h::t) -> ast_ize_SL h
     | _ -> raise (Failure "malformed parse tree in ast_ize_P")
@@ -625,11 +621,11 @@ and ast_ize_expr_tail (lhs:ast_e) (tail:parse_tree) : ast_e =
   match tail with
   | PT_nt ("TT", []) ->
       lhs
-  | PT_nt ("TT", [PT_nt (tmp, PT_term(symbol)::tl); t; tt]) ->
+  | PT_nt ("TT", [PT_nt (tmp, PT_term(symbol)::rest); t; tt]) ->
       AST_binop (symbol, lhs, ast_ize_expr_tail (ast_ize_expr t) tt)
   | PT_nt ("FT", []) ->
       lhs
-  | PT_nt ("FT", [PT_nt (tmp, PT_term(symbol)::tl); f; ft]) ->
+  | PT_nt ("FT", [PT_nt (tmp, PT_term(symbol)::rest); f; ft]) ->
       AST_binop (symbol, lhs, ast_ize_expr_tail (ast_ize_expr f) ft)
   (*
      your code here ...
@@ -638,7 +634,7 @@ and ast_ize_expr_tail (lhs:ast_e) (tail:parse_tree) : ast_e =
 
 and ast_ize_C (c:parse_tree) : ast_c =
   match c with
-  | PT_nt ("C", [e1; PT_nt (tmp, PT_term(symbol)::tl); e2]) ->
+  | PT_nt ("C", [e1; PT_nt (tmp, PT_term(symbol)::rest); e2]) ->
       (symbol, ast_ize_expr e1, ast_ize_expr e2)
   (*
      your code here ...
@@ -681,12 +677,12 @@ and interpret_sl (sl:ast_sl) (mem:memory)
     : bool * memory * string list * string list =
     (* ok?   new_mem       new_input     new_output *)
   (* your code should replace the following line *)
-  (true, mem, inp, outp)
-  (* match sl with
+  (* (true, mem, inp, outp) *)
+  match sl with
   | [] -> (true, mem, inp, outp)
   | h::t ->
-      let (p1, p2, p3, p4) = interpret_s h mem inp outp in
-      interpret_sl t p2 p3 p4 *)
+      let (n, m, i, o) = interpret_s h mem inp outp in
+      interpret_sl t m, i, o
 
 (* NB: the following routine is complete.  You can call it on any
    statement node and it figures out what more specific case to invoke.
@@ -706,7 +702,13 @@ and interpret_assign (lhs:string) (rhs:ast_e) (mem:memory)
                      (inp:string list) (outp:string list)
     : bool * memory * string list * string list =
   (* your code should replace the following line *)
-  (true, mem, inp, outp)
+  (* (true, mem, inp, outp) *)
+  let (v, m) = interpret_expr rhs mem in
+  match v with
+  | Value x ->
+      if in_mem m lhs then set_mem_val m (lhs, x); (true, m, inp, outp)
+      else (true, [(lhs, x)]@m, inp, outp)
+  | Error str -> raise (Failure str)
 
 and interpret_read (id:string) (mem:memory)
                    (inp:string list) (outp:string list)
@@ -740,6 +742,30 @@ and interpret_cond ((op:string), (lo:ast_e), (ro:ast_e)) (mem:memory)
     : value * memory =
   (* your code should replace the following line *)
   (Error("code not written yet"), mem)
+
+and set_mem_val (mem:memory) ((s,i):(string * int)) : memory = 
+  match mem with
+  | h::t ->
+      let (x, y) = h in
+      if x = s then [(s, i)] @ t
+      else [x] @ set_mem_val t (s, i)
+  | _ -> raise (Failure "error")
+
+and get_mem_val (mem:memory) (s:string) : int = 
+  match mem with
+  | h::t ->
+      let (x, y) = h in
+      if x = s then y
+      else get_mem_val t s
+  | _ -> raise (Failure "error")
+
+and in_mem () (mem:memory) (s:string) : bool =
+  match mem with
+  | h::t ->
+      let (x, y) = h in
+      if x = s then true
+      else in_mem t s
+  | _ -> false
 
 (*******************************************************************
     Testing
