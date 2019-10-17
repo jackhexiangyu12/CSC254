@@ -554,15 +554,27 @@ and ast_e =
 | AST_binop of (string * ast_e * ast_e)
 | AST_id of string
 | AST_num of string
+| AST_paren of (string * string * ast_e * string)
 and ast_c = (string * ast_e * ast_e);;
 
 let rec ast_ize_P (p:parse_tree) : ast_sl =
   (* your code should replace the following line *)
-  []
+  (* [] *)
+
+  (* let PT_nt (n1, n2) = p in  *)
+  (* print_string n1; print_string "\n"; *)
+
+  match p with
+    | PT_nt (n, h::t) -> ast_ize_SL h
+    | _ -> raise (Failure "malformed parse tree in ast_ize_P")
 
 and ast_ize_SL (sl:parse_tree) : ast_sl =
   match sl with
   | PT_nt ("SL", []) -> []
+  | PT_nt ("SL", f::s::t) ->
+      let p1 = [ast_ize_S f] in
+      let p2 = ast_ize_SL s in
+      p1@p2
   (*
      your code here ...
   *)
@@ -570,8 +582,20 @@ and ast_ize_SL (sl:parse_tree) : ast_sl =
 
 and ast_ize_S (s:parse_tree) : ast_s =
   match s with
-  | PT_nt ("S", [PT_id lhs; PT_term ":="; expr])
-        -> AST_assign (lhs, (ast_ize_expr expr))
+  | PT_nt ("S", [PT_id lhs; PT_term ":="; expr]) ->
+      AST_assign (lhs, (ast_ize_expr expr))
+  | PT_nt ("S", [PT_term "read"; PT_id lhs]) ->
+      AST_read lhs
+  | PT_nt ("S", [PT_term "write"; expr]) -> 
+      AST_write (ast_ize_expr expr)
+  | PT_nt ("S", [PT_term "if"; cond; sl; PT_term "end"]) ->
+      let p1 = ast_ize_C cond in
+      let p2 = ast_ize_SL sl in
+      AST_if (p1, p2)
+  | PT_nt ("S", [PT_term "while"; cond; sl; PT_term "end"]) ->
+      let p1 = ast_ize_C cond in
+      let p2 = ast_ize_SL sl in
+      AST_while (p1, p2)
   (*
      your code here ...
   *)
@@ -580,15 +604,33 @@ and ast_ize_S (s:parse_tree) : ast_s =
 and ast_ize_expr (e:parse_tree) : ast_e =
   (* e is an E, T, or F parse tree node *)
   match e with
+  | PT_nt ("E", [t; tt]) ->
+      ast_ize_expr_tail (ast_ize_expr t) tt
+  | PT_nt ("T", [f; ft]) ->
+      ast_ize_expr_tail (ast_ize_expr f) ft
+  | PT_nt ("F", [PT_id lhs]) ->
+      AST_id lhs
+  | PT_nt ("F", [PT_num lhs]) ->
+      AST_num lhs
+  (* | PT_nt ("F", [PT_term "("; expr; PT_term ")"]) -> *)
+
   (*
      your code here ...
   *)
   | _ -> raise (Failure "malformed parse tree in ast_ize_expr")
 
-and ast_ize_expr_tail (lhs:ast_e) (tail:parse_tree) :ast_e =
+and ast_ize_expr_tail (lhs:ast_e) (tail:parse_tree) : ast_e =
   (* lhs in an inherited attribute.
      tail is a TT or FT parse tree node *)
   match tail with
+  | PT_nt ("TT", []) ->
+      lhs
+  | PT_nt ("TT", [PT_nt (k, PT_term(sym)::v); t; tt]) ->
+      AST_binop (sym, lhs, ast_ize_expr_tail (ast_ize_expr t) tt)
+  | PT_nt ("FT", []) ->
+      lhs
+  | PT_nt ("FT", [PT_nt (k, PT_term(sym)::v); f; ft]) ->
+      AST_binop (sym, lhs, ast_ize_expr_tail (ast_ize_expr f) ft)
   (*
      your code here ...
   *)
@@ -596,6 +638,8 @@ and ast_ize_expr_tail (lhs:ast_e) (tail:parse_tree) :ast_e =
 
 and ast_ize_C (c:parse_tree) : ast_c =
   match c with
+  | PT_nt ("C", [e1; PT_nt (k, PT_term(v)::s); e2]) ->
+      (v, ast_ize_expr e1, ast_ize_expr e2)
   (*
      your code here ...
   *)
@@ -638,6 +682,11 @@ and interpret_sl (sl:ast_sl) (mem:memory)
     (* ok?   new_mem       new_input     new_output *)
   (* your code should replace the following line *)
   (true, mem, inp, outp)
+  (* match sl with
+  | [] -> (true, mem, inp, outp)
+  | h::t ->
+      let (p1, p2, p3, p4) = interpret_s h mem inp outp in
+      interpret_sl t p2 p3 p4 *)
 
 (* NB: the following routine is complete.  You can call it on any
    statement node and it figures out what more specific case to invoke.
