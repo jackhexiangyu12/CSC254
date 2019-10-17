@@ -1,0 +1,5 @@
+read n
+while n > 0
+    write n
+    read n
+end

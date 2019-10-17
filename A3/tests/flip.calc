@@ -1,0 +1,7 @@
+read n
+if n == 1
+    write 0
+end
+if n != 1
+    write 1
+end
