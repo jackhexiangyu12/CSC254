@@ -554,7 +554,7 @@ and ast_e =
 | AST_binop of (string * ast_e * ast_e)
 | AST_id of string
 | AST_num of string
-| AST_paren of (string * string * ast_e * string)
+| AST_paren of (string * ast_e * string)
 and ast_c = (string * ast_e * ast_e);;
 
 let rec ast_ize_P (p:parse_tree) : ast_sl =
@@ -612,8 +612,8 @@ and ast_ize_expr (e:parse_tree) : ast_e =
       AST_id lhs
   | PT_nt ("F", [PT_num lhs]) ->
       AST_num lhs
-  (* | PT_nt ("F", [PT_term "("; expr; PT_term ")"]) -> *)
-
+  | PT_nt ("F", [PT_term "("; expr; PT_term ")"]) ->
+      AST_paren ("(", ast_ize_expr expr, ")")
   (*
      your code here ...
   *)
@@ -625,12 +625,12 @@ and ast_ize_expr_tail (lhs:ast_e) (tail:parse_tree) : ast_e =
   match tail with
   | PT_nt ("TT", []) ->
       lhs
-  | PT_nt ("TT", [PT_nt (k, PT_term(sym)::v); t; tt]) ->
-      AST_binop (sym, lhs, ast_ize_expr_tail (ast_ize_expr t) tt)
+  | PT_nt ("TT", [PT_nt (tmp, PT_term(symbol)::tl); t; tt]) ->
+      AST_binop (symbol, lhs, ast_ize_expr_tail (ast_ize_expr t) tt)
   | PT_nt ("FT", []) ->
       lhs
-  | PT_nt ("FT", [PT_nt (k, PT_term(sym)::v); f; ft]) ->
-      AST_binop (sym, lhs, ast_ize_expr_tail (ast_ize_expr f) ft)
+  | PT_nt ("FT", [PT_nt (tmp, PT_term(symbol)::tl); f; ft]) ->
+      AST_binop (symbol, lhs, ast_ize_expr_tail (ast_ize_expr f) ft)
   (*
      your code here ...
   *)
@@ -638,8 +638,8 @@ and ast_ize_expr_tail (lhs:ast_e) (tail:parse_tree) : ast_e =
 
 and ast_ize_C (c:parse_tree) : ast_c =
   match c with
-  | PT_nt ("C", [e1; PT_nt (k, PT_term(v)::s); e2]) ->
-      (v, ast_ize_expr e1, ast_ize_expr e2)
+  | PT_nt ("C", [e1; PT_nt (tmp, PT_term(symbol)::tl); e2]) ->
+      (symbol, ast_ize_expr e1, ast_ize_expr e2)
   (*
      your code here ...
   *)
