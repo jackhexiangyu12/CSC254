@@ -682,7 +682,7 @@ and interpret_sl (sl:ast_sl) (mem:memory)
   | [] -> (true, mem, inp, outp)
   | h::t ->
       let (n, m, i, o) = interpret_s h mem inp outp in
-      interpret_sl t m, i, o
+      interpret_sl t m i o
 
 (* NB: the following routine is complete.  You can call it on any
    statement node and it figures out what more specific case to invoke.
@@ -706,7 +706,7 @@ and interpret_assign (lhs:string) (rhs:ast_e) (mem:memory)
   let (v, m) = interpret_expr rhs mem in
   match v with
   | Value x ->
-      if in_mem m lhs then set_mem_val m (lhs, x); (true, m, inp, outp)
+      if in_mem m lhs then (true, set_mem_val m (lhs, x), inp, outp)
       else (true, [(lhs, x)]@m, inp, outp)
   | Error str -> raise (Failure str)
 
@@ -714,41 +714,105 @@ and interpret_read (id:string) (mem:memory)
                    (inp:string list) (outp:string list)
     : bool * memory * string list * string list =
   (* your code should replace the following line *)
-  (true, mem, inp, outp)
+  (* (true, mem, inp, outp) *)
+  match inp with
+  | h::t -> 
+      if is_integer (explode h) then
+          if in_mem mem id then (true, set_mem_val mem (id, int_of_string h), inp, outp)
+          else (true, [(id, int_of_string h)]@mem, inp, outp)
+      else raise (Failure "read not number")
+  | _ -> raise (Failure "error in interpret_read")
 
 and interpret_write (expr:ast_e) (mem:memory)
                     (inp:string list) (outp:string list)
     : bool * memory * string list * string list =
   (* your code should replace the following line *)
-  (true, mem, inp, outp)
+  (* (true, mem, inp, outp) *)
+  let (v, m) = interpret_expr expr mem in
+  match v with
+  | Value x -> (true, m, inp, outp@[string_of_int x])
+  | Error str -> raise (Failure str)
 
 and interpret_if (cond:ast_c) (sl:ast_sl) (mem:memory)
                  (inp:string list) (outp:string list)
     : bool * memory * string list * string list =
   (* your code should replace the following line *)
-  (true, mem, inp, outp)
+  (* (true, mem, inp, outp) *)
+  let (sym, e1, e2) = cond in
+  let (v, m) = interpret_cond (sym, e1, e2) mem in
+  match v with
+  | Value x ->
+      if x = 1 then interpret_sl sl m inp outp
+      else (true, m, inp, outp)
+  | Error str -> raise (Failure str)
 
 and interpret_while (cond:ast_c) (sl:ast_sl) (mem:memory)
                     (inp:string list) (outp:string list)
     : bool * memory * string list * string list =
   (* your code should replace the following line *)
-  (true, mem, inp, outp)
+  (* (true, mem, inp, outp) *)
+  let (sym, e1, e2) = cond in
+  let (v, m) = interpret_cond (sym, e1, e2) mem in
+  match v with
+  | Value x ->
+      if x = 1 then 
+          let (n, mm, i, o) = interpret_sl sl m inp outp in
+          interpret_while cond sl mm i o
+      else (true, m, inp, outp)
+  | Error str -> raise (Failure str)
 
 and interpret_expr (expr:ast_e) (mem:memory) : value * memory =
   (* your code should replace the following line *)
-  (Error("code not written yet"), mem)
+  (* (Error("code not written yet"), mem) *)
+    match expr with
+    | AST_num(str1) -> (Value(int_of_string str1), mem)
+    | AST_id(str2) -> (Value(get_mem_val mem str2), mem)
+    | AST_paren(_,e,_) -> interpret_expr e mem
+    | AST_binop(op, e1, e2) -> 
+        let (Value(n1), m1) = interpret_expr e1 mem in
+        let (Value(n2), m2) = interpret_expr e2 m1 in
+        match op with 
+            | "+" -> (Value(n1+n2), m2)
+            | "-" -> (Value(n1-n2), m2)
+            | "*" -> (Value(n1*n2), m2)
+            | "/" -> 
+                if n2 = 0 then raise (Failure "Divide by zero error")
+                else (Value(n1/n2), m2)
+            | _ -> raise (Failure "error in interpret_expr")
 
 and interpret_cond ((op:string), (lo:ast_e), (ro:ast_e)) (mem:memory)
     : value * memory =
   (* your code should replace the following line *)
-  (Error("code not written yet"), mem)
+  (* (Error("code not written yet"), mem) *)
+  let (Value(n1), m1) = interpret_expr lo mem in
+  let (Value(n2), m2) = interpret_expr ro m1 in
+    match op with 
+    | "==" -> 
+        if (n1=n2) then (Value(1), m2)
+        else (Value(0), m2)
+    | "!=" -> 
+        if (n1<>n2) then (Value(1), m2)
+        else (Value(0), m2)
+    | ">" -> 
+        if (n1>n2) then (Value(1), m2)
+        else (Value(0), m2)
+    | "<" -> 
+        if (n1<n2) then (Value(1), m2)
+        else (Value(0), m2)
+    | ">=" -> 
+        if (n1>=n2) then (Value(1), m2)
+        else (Value(0), m2)
+    | "<=" -> 
+        if (n1<=n2) then (Value(1), m2)
+        else (Value(0), m2)
+    | _ -> raise (Failure "error in interpret_cond")
 
 and set_mem_val (mem:memory) ((s,i):(string * int)) : memory = 
   match mem with
   | h::t ->
       let (x, y) = h in
       if x = s then [(s, i)] @ t
-      else [x] @ set_mem_val t (s, i)
+      else [h] @ set_mem_val t (s, i)
   | _ -> raise (Failure "error")
 
 and get_mem_val (mem:memory) (s:string) : int = 
@@ -759,13 +823,23 @@ and get_mem_val (mem:memory) (s:string) : int =
       else get_mem_val t s
   | _ -> raise (Failure "error")
 
-and in_mem () (mem:memory) (s:string) : bool =
+and in_mem (mem:memory) (s:string) : bool =
   match mem with
   | h::t ->
       let (x, y) = h in
       if x = s then true
       else in_mem t s
   | _ -> false
+
+and is_integer x : bool = 
+      let is_digit = function '0' .. '9' -> true | _ -> false in
+        let rec helper st : bool = 
+              match st with 
+            | [] -> true
+            | h::t -> is_digit h && helper t in
+                let p::ps = x in
+                  if (p='-') then helper (ps)
+                  else helper x;;
 
 (*******************************************************************
     Testing
