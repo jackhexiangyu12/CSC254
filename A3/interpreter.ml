@@ -691,10 +691,6 @@ and interpret_read (id:string) (mem:memory)
   match inp with
   | [] -> raise (Failure "read nothing")
   | h::t -> 
-      (* if is_integer (explode h) then
-          if in_mem mem id then (true, set_mem_val mem (id, int_of_string h), t, outp)
-          else (true, [(id, int_of_string h, false)]@mem, t, outp)
-      else raise (Failure "read not number") *)
       try let i = int_of_string h in
         if in_mem mem id then (true, set_mem_val mem (id, i), t, outp)
         else (true, [(id, i, false)]@mem, t, outp)
@@ -708,12 +704,7 @@ and interpret_write (expr:ast_e) (mem:memory)
   (* (true, mem, inp, outp) *)
   let (v, m) = interpret_expr expr mem in
   match v with
-  | Value x -> (
-      (* match expr with
-      | AST_id id -> (true, remove_mem m id, inp, outp@[string_of_int x])
-      | _ -> (true, m, inp, outp@[string_of_int x]) *)
-      (true, m, inp, outp@[string_of_int x])
-  )
+  | Value x -> (true, m, inp, outp@[string_of_int x])
   | Error str -> raise (Failure str)
 
 and interpret_if (cond:ast_c) (sl:ast_sl) (mem:memory)
@@ -824,7 +815,7 @@ and get_mem_val (mem:memory) (s:string) : int =
       else get_mem_val rest s
   | _ -> raise (Failure "symbol not found get_mem_val")
 
-and remove_mem (mem:memory) (s:string) : memory = 
+(* and remove_mem (mem:memory) (s:string) : memory = 
   let rec remove_mem_helper (lhs:memory) (rhs:memory) (s:string) : memory =
     match rhs with
     | (x, y, z)::rest ->
@@ -832,7 +823,7 @@ and remove_mem (mem:memory) (s:string) : memory =
         else remove_mem_helper (lhs @ [(x, y, z)]) rest s
     | _ -> raise (Failure "symbol not found remove_mem")
   in
-  remove_mem_helper [] mem s
+  remove_mem_helper [] mem s *)
 
 and in_mem (mem:memory) (s:string) : bool =
   match mem with
@@ -840,16 +831,6 @@ and in_mem (mem:memory) (s:string) : bool =
       if x = s then true
       else in_mem rest s
   | _ -> false;;
-
-(* and is_integer x : bool = 
-      let is_digit = function '0' .. '9' -> true | _ -> false in
-        let rec helper st : bool = 
-              match st with 
-            | [] -> true
-            | h::t -> is_digit h && helper t in
-                let p::ps = x in
-                  if (p='-') then helper (ps)
-                  else helper x;; *)
 
 let rec stringify_parse_tree_helper (p:parse_tree) (depth:int) : string =
   let flip f a b = f b a in
