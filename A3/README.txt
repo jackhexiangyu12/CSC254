@@ -20,4 +20,3 @@ Extra credit
 
     We implemented the checking mechanism for unused variable. 
     Uncomment line 652, which is "print_string (warn_mem mem ^ "\n");" in func interpret, to make it work. 
-
