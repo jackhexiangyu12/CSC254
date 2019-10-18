@@ -648,7 +648,8 @@ let str_cat sep a b =
 *)
 let rec interpret (ast:ast_sl) (full_input:string) : string =
   let inp = split (regexp "[ \t\n\r]+") full_input in
-  let (_, _, _, outp) = interpret_sl ast [] inp [] in
+  let (_, mem, _, outp) = interpret_sl ast [] inp [] in
+    (* print_string (warn_mem mem ^ "\n"); *)
     (fold_left (str_cat " ") "" outp) ^ "\n"
 
 and interpret_sl (sl:ast_sl) (mem:memory)
@@ -822,7 +823,17 @@ and in_mem (mem:memory) (s:string) : bool =
   | (x, _, _)::rest ->
       if x = s then true
       else in_mem rest s
-  | _ -> false;;
+  | _ -> false
+
+and warn_mem (mem:memory) : string =
+  let rec warn_mem_helper (mem:memory) (outp:string) : string =
+    match mem with
+    | [] -> outp
+    | (x, y, z)::rest ->
+        if z then warn_mem_helper rest outp
+        else warn_mem_helper rest (outp ^ "Variable " ^ x ^ " is assigned as " ^ string_of_int y ^ " but is never used. \n")
+  in
+  warn_mem_helper mem "";;
 
 let rec stringify_parse_tree_helper (p:parse_tree) (depth:int) : string =
   let flip f a b = f b a in
