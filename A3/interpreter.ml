@@ -700,8 +700,6 @@ and interpret_read (id:string) (mem:memory)
 and interpret_write (expr:ast_e) (mem:memory)
                     (inp:string list) (outp:string list)
     : bool * memory * string list * string list =
-  (* your code should replace the following line *)
-  (* (true, mem, inp, outp) *)
   let (v, m) = interpret_expr expr mem in
   match v with
   | Value x -> (true, m, inp, outp@[string_of_int x])
@@ -710,8 +708,6 @@ and interpret_write (expr:ast_e) (mem:memory)
 and interpret_if (cond:ast_c) (sl:ast_sl) (mem:memory)
                  (inp:string list) (outp:string list)
     : bool * memory * string list * string list =
-  (* your code should replace the following line *)
-  (* (true, mem, inp, outp) *)
   let (op, e1, e2) = cond in
   let (v, m) = interpret_cond (op, e1, e2) mem in
   match v with
@@ -759,8 +755,6 @@ and interpret_expr (expr:ast_e) (mem:memory) : value * memory =
 
 and interpret_cond ((op:string), (lo:ast_e), (ro:ast_e)) (mem:memory)
     : value * memory =
-  (* your code should replace the following line *)
-  (* (Error("code not written yet"), mem) *)
   let (v1, m1) = interpret_expr lo mem in
   let (v2, m2) = interpret_expr ro m1 in
   match v1 with
