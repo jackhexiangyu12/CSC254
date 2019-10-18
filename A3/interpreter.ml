@@ -689,12 +689,12 @@ and interpret_read (id:string) (mem:memory)
                    (inp:string list) (outp:string list)
     : bool * memory * string list * string list =
   match inp with
-  | [] -> raise (Failure "read nothing")
+  | [] -> raise (Failure "unexpected end of input")
   | h::t -> 
       try let i = int_of_string h in
         if in_mem mem id then (true, set_mem_val mem (id, i), t, outp)
         else (true, [(id, i, false)]@mem, t, outp)
-      with Failure _ -> raise (Failure "read not number")
+      with Failure _ -> raise (Failure "non-numeric input")
   | _ -> raise (Failure "error in interpret_read")
 
 and interpret_write (expr:ast_e) (mem:memory)
@@ -712,8 +712,8 @@ and interpret_if (cond:ast_c) (sl:ast_sl) (mem:memory)
     : bool * memory * string list * string list =
   (* your code should replace the following line *)
   (* (true, mem, inp, outp) *)
-  let (sym, e1, e2) = cond in
-  let (v, m) = interpret_cond (sym, e1, e2) mem in
+  let (op, e1, e2) = cond in
+  let (v, m) = interpret_cond (op, e1, e2) mem in
   match v with
   | Value x ->
       if x = 1 then interpret_sl sl m inp outp
@@ -723,16 +723,14 @@ and interpret_if (cond:ast_c) (sl:ast_sl) (mem:memory)
 and interpret_while (cond:ast_c) (sl:ast_sl) (mem:memory)
                     (inp:string list) (outp:string list)
     : bool * memory * string list * string list =
-  (* your code should replace the following line *)
-  (* (true, mem, inp, outp) *)
   let (op, e1, e2) = cond in
-  let (v, m) = interpret_cond (op, e1, e2) mem in
+  let (v, m1) = interpret_cond (op, e1, e2) mem in
   match v with
   | Value x ->
       if x = 1 then 
-          let (n, mm, i, o) = interpret_sl sl m inp outp in
-          interpret_while cond sl mm i o
-      else (true, m, inp, outp)
+          let (_, m2, i, o) = interpret_sl sl m1 inp outp in
+          interpret_while cond sl m2 i o
+      else (true, m1, inp, outp)
   | Error str -> raise (Failure str)
 
 and interpret_expr (expr:ast_e) (mem:memory) : value * memory =
@@ -799,21 +797,21 @@ and set_mem_val (mem:memory) ((s,v):(string * int)) : memory =
   | (x, y, z)::rest ->
       if x = s then [(x, v, z)] @ rest
       else [(x, y, z)] @ set_mem_val rest (s, v)
-  | _ -> raise (Failure "symbol not found set_mem_val")
+  | _ -> raise (Failure "symbol not found")
 
 and set_mem_usage (mem:memory) ((s,u):(string * bool)) : memory = 
   match mem with
   | (x, y, z)::rest ->
       if x = s then [(x, y, u)] @ rest
       else [(x, y, z)] @ set_mem_usage rest (s, u)
-  | _ -> raise (Failure "symbol not found set_mem_usage")
+  | _ -> raise (Failure "symbol not found")
 
 and get_mem_val (mem:memory) (s:string) : int = 
   match mem with
   | (x, y, _)::rest ->
       if x = s then y
       else get_mem_val rest s
-  | _ -> raise (Failure "symbol not found get_mem_val")
+  | _ -> raise (Failure "symbol not found")
 
 (* and remove_mem (mem:memory) (s:string) : memory = 
   let rec remove_mem_helper (lhs:memory) (rhs:memory) (s:string) : memory =
@@ -876,17 +874,17 @@ let main () =
   print_newline ();
   print_string (interpret primes_syntax_tree "10");
     (* should print "2 3 5 7 11 13 17 19 23 29" *)
-  print_newline ();
-  print_string (interpret sum_ave_syntax_tree "4 foo");
+  print_newline (); *)
+  (* print_string (interpret sum_ave_syntax_tree "4 foo");
     (* should print "non-numeric input" *)
-  print_newline ();
-  print_string (ecg_run "write 3 write 2 / 0" "");
+  print_newline (); *)
+  (* print_string (ecg_run "write 3 write 2 / 0" "");
     (* should print "3 divide by zero" *)
-  print_newline ();
-  print_string (ecg_run "write foo" "");
+  print_newline (); *)
+  (* print_string (ecg_run "write foo" "");
     (* should print "foo: symbol not found" *)
-  print_newline ();
-  print_string (ecg_run "read a read b" "3");
+  print_newline (); *)
+  (* print_string (ecg_run "read a read b" "3");
     (* should print "unexpected end of input" *)
   print_newline ();; *)
 
