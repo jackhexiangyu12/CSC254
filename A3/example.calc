@@ -1,5 +1,6 @@
 read n
 cp := 2
+nu := 0
 while n > 0
     found := 0
     cf1 := 2
