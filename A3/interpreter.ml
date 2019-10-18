@@ -554,23 +554,20 @@ and ast_e =
 | AST_binop of (string * ast_e * ast_e)
 | AST_id of string
 | AST_num of string
-| AST_paren of (string * ast_e * string)
+(* | AST_paren of (string * ast_e * string) *)
 and ast_c = (string * ast_e * ast_e);;
 
 let rec ast_ize_P (p:parse_tree) : ast_sl =
   (* your code should replace the following line *)
   (* [] *)
   match p with
-    | PT_nt (n, h::t) -> ast_ize_SL h
+    | PT_nt ("P", [sl; PT_term "$$"]) -> ast_ize_SL sl
     | _ -> raise (Failure "malformed parse tree in ast_ize_P")
 
 and ast_ize_SL (sl:parse_tree) : ast_sl =
   match sl with
   | PT_nt ("SL", []) -> []
-  | PT_nt ("SL", f::s::t) ->
-      let p1 = [ast_ize_S f] in
-      let p2 = ast_ize_SL s in
-      p1@p2
+  | PT_nt ("SL", [s; sl]) -> ast_ize_S s::ast_ize_SL sl
   (*
      your code here ...
   *)
@@ -580,21 +577,14 @@ and ast_ize_S (s:parse_tree) : ast_s =
   match s with
   | PT_nt ("S", [PT_id lhs; PT_term ":="; expr]) ->
       AST_assign (lhs, (ast_ize_expr expr))
-  | PT_nt ("S", [PT_term "read"; PT_id lhs]) ->
-      AST_read lhs
+  | PT_nt ("S", [PT_term "read"; PT_id id]) ->
+      AST_read id
   | PT_nt ("S", [PT_term "write"; expr]) -> 
       AST_write (ast_ize_expr expr)
-  | PT_nt ("S", [PT_term "if"; cond; sl; PT_term "end"]) ->
-      let p1 = ast_ize_C cond in
-      let p2 = ast_ize_SL sl in
-      AST_if (p1, p2)
-  | PT_nt ("S", [PT_term "while"; cond; sl; PT_term "end"]) ->
-      let p1 = ast_ize_C cond in
-      let p2 = ast_ize_SL sl in
-      AST_while (p1, p2)
-  (*
-     your code here ...
-  *)
+  | PT_nt ("S", [PT_term "if"; c; sl; PT_term "end"]) ->
+      AST_if (ast_ize_C c, ast_ize_SL sl)
+  | PT_nt ("S", [PT_term "while"; c; sl; PT_term "end"]) ->
+      AST_while (ast_ize_C c, ast_ize_SL sl)
   | _ -> raise (Failure "malformed parse tree in ast_ize_S")
 
 and ast_ize_expr (e:parse_tree) : ast_e =
@@ -604,41 +594,30 @@ and ast_ize_expr (e:parse_tree) : ast_e =
       ast_ize_expr_tail (ast_ize_expr t) tt
   | PT_nt ("T", [f; ft]) ->
       ast_ize_expr_tail (ast_ize_expr f) ft
-  | PT_nt ("F", [PT_id lhs]) ->
-      AST_id lhs
-  | PT_nt ("F", [PT_num lhs]) ->
-      AST_num lhs
+  | PT_nt ("F", [PT_id id]) ->
+      AST_id id
+  | PT_nt ("F", [PT_num num]) ->
+      AST_num num
   | PT_nt ("F", [PT_term "("; expr; PT_term ")"]) ->
-      AST_paren ("(", ast_ize_expr expr, ")")
-  (*
-     your code here ...
-  *)
+      ast_ize_expr expr
   | _ -> raise (Failure "malformed parse tree in ast_ize_expr")
 
 and ast_ize_expr_tail (lhs:ast_e) (tail:parse_tree) : ast_e =
   (* lhs in an inherited attribute.
      tail is a TT or FT parse tree node *)
   match tail with
-  | PT_nt ("TT", []) ->
-      lhs
-  | PT_nt ("TT", [PT_nt (tmp, PT_term(symbol)::rest); t; tt]) ->
-      AST_binop (symbol, lhs, ast_ize_expr_tail (ast_ize_expr t) tt)
-  | PT_nt ("FT", []) ->
-      lhs
-  | PT_nt ("FT", [PT_nt (tmp, PT_term(symbol)::rest); f; ft]) ->
-      AST_binop (symbol, lhs, ast_ize_expr_tail (ast_ize_expr f) ft)
-  (*
-     your code here ...
-  *)
+  | PT_nt ("TT", []) -> lhs
+  | PT_nt ("TT", [PT_nt ("ao", PT_term(ao)::rest); t; tt]) ->
+      AST_binop (ao, lhs, ast_ize_expr_tail (ast_ize_expr t) tt)
+  | PT_nt ("FT", []) -> lhs
+  | PT_nt ("FT", [PT_nt ("mo", PT_term(mo)::rest); f; ft]) ->
+      AST_binop (mo, lhs, ast_ize_expr_tail (ast_ize_expr f) ft)
   | _ -> raise (Failure "malformed parse tree in ast_ize_expr_tail")
 
 and ast_ize_C (c:parse_tree) : ast_c =
   match c with
-  | PT_nt ("C", [e1; PT_nt (tmp, PT_term(symbol)::rest); e2]) ->
-      (symbol, ast_ize_expr e1, ast_ize_expr e2)
-  (*
-     your code here ...
-  *)
+  | PT_nt ("C", [e1; PT_nt ("rn", PT_term(ro)::rest); e2]) ->
+      (ro, ast_ize_expr e1, ast_ize_expr e2)
   | _ -> raise (Failure "malformed parse tree in ast_ize_C")
 ;;
 
@@ -646,7 +625,7 @@ and ast_ize_C (c:parse_tree) : ast_c =
     Interpreter
  *******************************************************************)
 
-type memory = (string * int) list;;
+type memory = (string * int * bool) list;;
 (*             name   * val         *)
 (* If you do the extra credit, you might want an extra Boolean
    field in the tuple to indicate whether the value has been used. *)
@@ -676,13 +655,11 @@ and interpret_sl (sl:ast_sl) (mem:memory)
                  (inp:string list) (outp:string list)
     : bool * memory * string list * string list =
     (* ok?   new_mem       new_input     new_output *)
-  (* your code should replace the following line *)
-  (* (true, mem, inp, outp) *)
   match sl with
   | [] -> (true, mem, inp, outp)
-  | h::t ->
-      let (n, m, i, o) = interpret_s h mem inp outp in
-      interpret_sl t m i o
+  | s::sl ->
+      let (_, m, i, o) = interpret_s s mem inp outp in
+      interpret_sl sl m i o
 
 (* NB: the following routine is complete.  You can call it on any
    statement node and it figures out what more specific case to invoke.
@@ -701,26 +678,27 @@ and interpret_s (s:ast_s) (mem:memory)
 and interpret_assign (lhs:string) (rhs:ast_e) (mem:memory)
                      (inp:string list) (outp:string list)
     : bool * memory * string list * string list =
-  (* your code should replace the following line *)
-  (* (true, mem, inp, outp) *)
   let (v, m) = interpret_expr rhs mem in
   match v with
   | Value x ->
       if in_mem m lhs then (true, set_mem_val m (lhs, x), inp, outp)
-      else (true, [(lhs, x)]@m, inp, outp)
+      else (true, [(lhs, x, false)]@m, inp, outp)
   | Error str -> raise (Failure str)
 
 and interpret_read (id:string) (mem:memory)
                    (inp:string list) (outp:string list)
     : bool * memory * string list * string list =
-  (* your code should replace the following line *)
-  (* (true, mem, inp, outp) *)
   match inp with
+  | [] -> raise (Failure "read nothing")
   | h::t -> 
-      if is_integer (explode h) then
-          if in_mem mem id then (true, set_mem_val mem (id, int_of_string h), inp, outp)
-          else (true, [(id, int_of_string h)]@mem, inp, outp)
-      else raise (Failure "read not number")
+      (* if is_integer (explode h) then
+          if in_mem mem id then (true, set_mem_val mem (id, int_of_string h), t, outp)
+          else (true, [(id, int_of_string h, false)]@mem, t, outp)
+      else raise (Failure "read not number") *)
+      try let i = int_of_string h in
+        if in_mem mem id then (true, set_mem_val mem (id, i), t, outp)
+        else (true, [(id, i, false)]@mem, t, outp)
+      with Failure _ -> raise (Failure "read not number")
   | _ -> raise (Failure "error in interpret_read")
 
 and interpret_write (expr:ast_e) (mem:memory)
@@ -730,7 +708,12 @@ and interpret_write (expr:ast_e) (mem:memory)
   (* (true, mem, inp, outp) *)
   let (v, m) = interpret_expr expr mem in
   match v with
-  | Value x -> (true, m, inp, outp@[string_of_int x])
+  | Value x -> (
+      (* match expr with
+      | AST_id id -> (true, remove_mem m id, inp, outp@[string_of_int x])
+      | _ -> (true, m, inp, outp@[string_of_int x]) *)
+      (true, m, inp, outp@[string_of_int x])
+  )
   | Error str -> raise (Failure str)
 
 and interpret_if (cond:ast_c) (sl:ast_sl) (mem:memory)
@@ -751,8 +734,8 @@ and interpret_while (cond:ast_c) (sl:ast_sl) (mem:memory)
     : bool * memory * string list * string list =
   (* your code should replace the following line *)
   (* (true, mem, inp, outp) *)
-  let (sym, e1, e2) = cond in
-  let (v, m) = interpret_cond (sym, e1, e2) mem in
+  let (op, e1, e2) = cond in
+  let (v, m) = interpret_cond (op, e1, e2) mem in
   match v with
   | Value x ->
       if x = 1 then 
@@ -762,76 +745,103 @@ and interpret_while (cond:ast_c) (sl:ast_sl) (mem:memory)
   | Error str -> raise (Failure str)
 
 and interpret_expr (expr:ast_e) (mem:memory) : value * memory =
-  (* your code should replace the following line *)
-  (* (Error("code not written yet"), mem) *)
     match expr with
-    | AST_num(str1) -> (Value(int_of_string str1), mem)
-    | AST_id(str2) -> (Value(get_mem_val mem str2), mem)
-    | AST_paren(_,e,_) -> interpret_expr e mem
-    | AST_binop(op, e1, e2) -> 
-        let (Value(n1), m1) = interpret_expr e1 mem in
-        let (Value(n2), m2) = interpret_expr e2 m1 in
-        match op with 
-            | "+" -> (Value(n1+n2), m2)
-            | "-" -> (Value(n1-n2), m2)
-            | "*" -> (Value(n1*n2), m2)
-            | "/" -> 
-                if n2 = 0 then raise (Failure "Divide by zero error")
-                else (Value(n1/n2), m2)
-            | _ -> raise (Failure "error in interpret_expr")
+    | AST_num num -> (Value(int_of_string num), mem)
+    | AST_id id -> (Value(get_mem_val mem id), set_mem_usage mem (id, true))
+    | AST_binop (op, e1, e2) -> 
+        let (v1, m1) = interpret_expr e1 mem in
+        let (v2, m2) = interpret_expr e2 m1 in
+        match v1 with
+        | Value n1 -> (
+            match v2 with
+            | Value n2 -> (
+                match op with 
+                | "+" -> (Value(n1 + n2), m2)
+                | "-" -> (Value(n1 - n2), m2)
+                | "*" -> (Value(n1 * n2), m2)
+                | "/" -> 
+                    if n2 = 0 then raise (Failure "divided by zero")
+                    else (Value(n1/n2), m2)
+                | _ -> raise (Failure "error in interpret_expr")
+            )
+            | Error str2 -> raise (Failure str2)
+        )
+        | Error str1 -> raise (Failure str1)
 
 and interpret_cond ((op:string), (lo:ast_e), (ro:ast_e)) (mem:memory)
     : value * memory =
   (* your code should replace the following line *)
   (* (Error("code not written yet"), mem) *)
-  let (Value(n1), m1) = interpret_expr lo mem in
-  let (Value(n2), m2) = interpret_expr ro m1 in
-    match op with 
-    | "==" -> 
-        if (n1=n2) then (Value(1), m2)
-        else (Value(0), m2)
-    | "!=" -> 
-        if (n1<>n2) then (Value(1), m2)
-        else (Value(0), m2)
-    | ">" -> 
-        if (n1>n2) then (Value(1), m2)
-        else (Value(0), m2)
-    | "<" -> 
-        if (n1<n2) then (Value(1), m2)
-        else (Value(0), m2)
-    | ">=" -> 
-        if (n1>=n2) then (Value(1), m2)
-        else (Value(0), m2)
-    | "<=" -> 
-        if (n1<=n2) then (Value(1), m2)
-        else (Value(0), m2)
-    | _ -> raise (Failure "error in interpret_cond")
+  let (v1, m1) = interpret_expr lo mem in
+  let (v2, m2) = interpret_expr ro m1 in
+  match v1 with
+  | Value n1 -> (
+      match v2 with
+      | Value n2 -> (
+          match op with 
+          | "==" -> 
+              if n1 = n2 then (Value(1), m2)
+              else (Value(0), m2)
+          | "!=" -> 
+              if n1 <> n2 then (Value(1), m2)
+              else (Value(0), m2)
+          | ">" -> 
+              if n1 > n2 then (Value(1), m2)
+              else (Value(0), m2)
+          | "<" -> 
+              if n1 < n2 then (Value(1), m2)
+              else (Value(0), m2)
+          | ">=" -> 
+              if n1 >= n2 then (Value(1), m2)
+              else (Value(0), m2)
+          | "<=" -> 
+              if n1 <= n2 then (Value(1), m2)
+              else (Value(0), m2)
+          | _ -> raise (Failure "error in interpret_cond")
+      )
+      | Error str2 -> raise (Failure str2)
+  )
+  | Error str1 -> raise (Failure str1)
 
-and set_mem_val (mem:memory) ((s,i):(string * int)) : memory = 
+and set_mem_val (mem:memory) ((s,v):(string * int)) : memory = 
   match mem with
-  | h::t ->
-      let (x, y) = h in
-      if x = s then [(s, i)] @ t
-      else [h] @ set_mem_val t (s, i)
-  | _ -> raise (Failure "error")
+  | (x, y, z)::rest ->
+      if x = s then [(x, v, z)] @ rest
+      else [(x, y, z)] @ set_mem_val rest (s, v)
+  | _ -> raise (Failure "symbol not found set_mem_val")
+
+and set_mem_usage (mem:memory) ((s,u):(string * bool)) : memory = 
+  match mem with
+  | (x, y, z)::rest ->
+      if x = s then [(x, y, u)] @ rest
+      else [(x, y, z)] @ set_mem_usage rest (s, u)
+  | _ -> raise (Failure "symbol not found set_mem_usage")
 
 and get_mem_val (mem:memory) (s:string) : int = 
   match mem with
-  | h::t ->
-      let (x, y) = h in
+  | (x, y, _)::rest ->
       if x = s then y
-      else get_mem_val t s
-  | _ -> raise (Failure "error")
+      else get_mem_val rest s
+  | _ -> raise (Failure "symbol not found get_mem_val")
+
+and remove_mem (mem:memory) (s:string) : memory = 
+  let rec remove_mem_helper (lhs:memory) (rhs:memory) (s:string) : memory =
+    match rhs with
+    | (x, y, z)::rest ->
+        if x = s then lhs @ rest
+        else remove_mem_helper (lhs @ [(x, y, z)]) rest s
+    | _ -> raise (Failure "symbol not found remove_mem")
+  in
+  remove_mem_helper [] mem s
 
 and in_mem (mem:memory) (s:string) : bool =
   match mem with
-  | h::t ->
-      let (x, y) = h in
+  | (x, _, _)::rest ->
       if x = s then true
-      else in_mem t s
-  | _ -> false
+      else in_mem rest s
+  | _ -> false;;
 
-and is_integer x : bool = 
+(* and is_integer x : bool = 
       let is_digit = function '0' .. '9' -> true | _ -> false in
         let rec helper st : bool = 
               match st with 
@@ -839,7 +849,18 @@ and is_integer x : bool =
             | h::t -> is_digit h && helper t in
                 let p::ps = x in
                   if (p='-') then helper (ps)
-                  else helper x;;
+                  else helper x;; *)
+
+let rec stringify_parse_tree_helper (p:parse_tree) (depth:int) : string =
+  let flip f a b = f b a in
+    match p with
+    | PT_id id ->  "ID(" ^ id ^ ")"
+    | PT_num x ->  "Num(" ^ x ^ ")"
+    | PT_term t -> "Term(" ^ t ^ ")"
+    | PT_nt (t, xs) -> "Non-Term((" ^ t ^ ",[\n" ^ String.make (depth + 1) '\t' 
+      ^ (String.concat ("\n" ^ String.make (depth + 1) '\t') (List.map (flip stringify_parse_tree_helper (depth + 1)) xs)) ^ "])"
+    | PT_error -> String.make depth ' ' ^ "Error" 
+let stringify_parse_tree (p:parse_tree) : string = stringify_parse_tree_helper p 0;;
 
 (*******************************************************************
     Testing
@@ -868,8 +889,8 @@ let main () =
   let output = ecg_run prog input in
     print_string output;;
 
-(* Sample test cases
-  print_string (interpret sum_ave_syntax_tree "4 6");
+(* Sample test cases *)
+  (* print_string (interpret sum_ave_syntax_tree "4 6");
     (* should print "10 5" *)
   print_newline ();
   print_string (interpret primes_syntax_tree "10");
@@ -886,8 +907,8 @@ let main () =
   print_newline ();
   print_string (ecg_run "read a read b" "3");
     (* should print "unexpected end of input" *)
-  print_newline ();;
-*)
+  print_newline ();; *)
+
 
 (* Execute function "main" iff run as a stand-alone program. *)
 if !Sys.interactive then () else main ();;
