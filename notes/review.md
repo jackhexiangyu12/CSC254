@@ -43,7 +43,19 @@ Declarative
 - **functional**: Scheme/Lisp, ML/Ocaml/Haskell/F#
 - **logic, constraint-based**: Prolog, OPS5, spreadsheet, XSLT
 
-你review咋只有一章啊
 
 
+# Ch2 Syntax
+
+
+
+
+
+# Ch3 Names, Scopes and Bindings
+
+
+
+
+
+# Ch4 Semantic
 
