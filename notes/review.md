@@ -1,11 +1,3 @@
-DFA scannar diff
-    error recovery
-    remove comment and 
-    scannar -> build a long token
-    DFA -> y/n
-
-shallow and deep binding
-
 # Ch1 Introduction
 
 Why are there so many programming languages? 
