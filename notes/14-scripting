@@ -85,7 +85,7 @@ Modern categories
 ----------------------------
 names & scopes
     what is the scope of an undeclared variable?
-        Perl: global unless declared otherwise
+        Perl: global unless declared otherwise (local for dynamic, my for static)
         PHP: local unless explicitly imported
         Ruby: foo is local; $foo is global; @foo is instance; @@foo is class
         Python and R: local if written; global OW
