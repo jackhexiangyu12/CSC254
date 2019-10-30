@@ -9,7 +9,7 @@ Reminder:
 We have all developed an intuitive notion of what types are.
 
 What's behind the intuition -- what _is_ a type?
-  - collection of values from a "domain" (the denotational approach)
+  - collection of 11-funcional-ocamlvalues from a "domain" (the denotational approach)
   - internal structure of a bunch of data, described down to the level
         of a small set of fundamental types (the structural approach)
   - equivalence class of objects (the implementor's approach)
