@@ -2,8 +2,8 @@
 outputs
 
 # C files
-# *.c
-# *.h
+*.c
+*.h
 
 # Prerequisites
 *.d
