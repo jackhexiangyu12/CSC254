@@ -11,11 +11,8 @@ exec_name = ARGV[0]
 # Set regex for objdump and dwarfdump
 
 obj_reg = /^([0-9a-f]+ <(\S+)>:)|^  ([0-9a-f]+):\t*((?: *[0-9a-f]{2})+) *\t([a-z]+) *([a-zA-Z0-9$,\%_\-\(\)\# \*\<\>\.\:\@\+\/\\]*)/
-
-dwarf_file_reg = /^debug_line\[(0x[0-9a-f]+)\]$|^file_names\[ *(?<num>\d+)\]:\n +name: \"(?<name>.+\.[ch]{1})\"$/
-# dwarf_file_reg = /^debug_line\[(0x[0-9a-f]+)\]$/
-
-dwarf_line_reg = /^(?<address>0x[0-9a-f]+) +(?<line>\d+) +(?<col>\d+) +(?<file>\d+) +(?<isa>\d+) +(?<dis>\d+) +(?<flags>.+)/
+dwarf_file_reg = /^(?<first>debug_line\[[0-9a-fx]+\])|^file_names\[ *(?<num>\d+)\]:\n +name: \"(?<name>.+\.[ch]{1})\"/
+dwarf_line_reg = /^(?<first>debug_line\[[0-9a-fx]+\])|^(?<address>0x[0-9a-f]+) +(?<line>\d+) +(?<col>\d+) +(?<file>\d+) +(?<isa>\d+) +(?<dis>\d+) +(?<flags>.+)/
 
 # Get results from objdump and dwarfdump
 
