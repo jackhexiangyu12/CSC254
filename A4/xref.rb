@@ -11,8 +11,8 @@ exec_name = ARGV[0]
 # Set regex for objdump and dwarfdump
 
 obj_reg = /^([0-9a-f]+ <(\S+)>:)|^  ([0-9a-f]+):\t*((?: *[0-9a-f]{2})+) *\t([a-z]+) *([a-zA-Z0-9$,\%_\-\(\)\# \*\<\>\.\:\@\+\/\\]*)/
-dwarf_file_reg = /^file_names\[ *(\d{1,3})\]:\n +name: \"(.+\.[ch]{1})\"/
-dwarf_line_reg = //
+dwarf_file_reg = /^file_names\[ *(?<num>\d+)\]:\n +name: \"(?<name>.+\.[ch]{1})\"/
+dwarf_line_reg = /^(?<address>0x[0-9a-f]+) +(?<line>\d+) +(?<col>\d+) +(?<file>\d+) +(?<isa>\d+) +(?<dis>\d+) +(?<flags>.+)/
 
 # Get results from objdump and dwarfdump
 
@@ -26,7 +26,10 @@ obj = obj_raw.scan(obj_reg)
 File.open("outputs/obj.txt", 'w') { |f| f.write(obj) }
 
 dwarf_file = dwarf_raw.scan(dwarf_file_reg)
-File.open("outputs/dwarf-file.txt", 'w') { |f| f.write(dwarf_file) }
+File.open("outputs/dwarffile.txt", 'w') { |f| f.write(dwarf_file) }
+
+dwarf_line = dwarf_raw.scan(dwarf_line_reg)
+File.open("outputs/dwarfline.txt", 'w') { |f| f.write(dwarf_line) }
 
 
 
