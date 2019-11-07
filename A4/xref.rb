@@ -79,7 +79,28 @@ dwarf_line.each { |l|
 }
 addr_map[curr] = list
 
-#
+# Store all source files
+
+file_all = Hash.new
+
+addr_map.each { |key, table|
+    for i in 0..table.length-1
+        file_num = table[i][3]
+        file_name = file_map[key][file_num.to_i]
+
+        if !file_all.key?(file_name)
+            file_content = Array.new
+            File.foreach(file_name).with_index { |line, line_num|
+                file_content.push(line)
+            }
+            file_all[file_name] = file_content
+        end
+    end
+}
+
+puts(file_all)
+
+# By source file
 
 code_map = Hash.new
 
@@ -87,7 +108,7 @@ addr_map.each { |key, table|
     for i in 0..table.length-2
         addr_1 = table[i][0].to_i(16)
         addr_2 = table[i+1][0].to_i(16)
-        
+
         assembly_list = Array.new
         for j in addr_1..addr_2-1
             assembly_list.push(assembly_map[j])
