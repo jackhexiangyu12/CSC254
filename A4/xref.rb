@@ -32,24 +32,24 @@ dwarf_line = dwarf_raw.scan(dwarf_line_reg)
 
 # Store assembly code as a hash map using addr as key
 
-assembly = Hash.new
+assembly_map = Hash.new
 
 obj.each { |l|
     if l[2] != nil
-        assembly[l[2]] = [l[3..5]]
+        assembly_map[l[2].to_i(16)] = [l[2..5]]
     end
 }
 
 # Extract file names in dwarf
 
-files = Hash.new
+file_map = Hash.new
 list = Array.new
 curr = nil
 
 dwarf_file.each { |l|
     if l[0] != nil
         if curr != nil
-            files[curr] = list
+            file_map[curr] = list
         end
         curr = l[0]
         list = Array.new
@@ -58,18 +58,18 @@ dwarf_file.each { |l|
         list.push(l[2])
     end
 }
-files[curr] = list
+file_map[curr] = list
 
 # Extract the table in dwarf
 
-table = Hash.new
+addr_map = Hash.new
 list = Array.new
 curr = nil
 
 dwarf_line.each { |l|
     if l[0] != nil
         if curr != nil
-            table[curr] = list
+            addr_map[curr] = list
         end
         curr = l[0]
         list = Array.new
@@ -77,17 +77,28 @@ dwarf_line.each { |l|
         list.push(l[1..7])
     end
 }
-table[curr] = list
+addr_map[curr] = list
 
-# Store the map between assembly and source
+#
 
-map = Hash.new
+code_map = Hash.new
 
-table.each { |k, t|
-    
-    t.each { |l|
+addr_map.each { |key, table|
+    for i in 0..table.length-2
+        addr_1 = table[i][0].to_i(16)
+        addr_2 = table[i+1][0].to_i(16)
+        
+        assembly_list = Array.new
+        for j in addr_1..addr_2-1
+            assembly_list.push(assembly_map[j])
+        end
 
-    }
+        file_num = table[i][3]
+        file_name = file_map[key][file_num.to_i]
+
+        
+    end
+
 }
 
 # Generate HTML
