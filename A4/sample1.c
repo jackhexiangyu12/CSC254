@@ -3,7 +3,7 @@
 
 # define A_CONSTANT 10
 
-int main()
+int main(int argc, char* argv[])
 {
    int a = A_CONSTANT;
    int x = 8;
