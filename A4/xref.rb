@@ -140,15 +140,15 @@ addr_map.each { |key, table|
 
 # Generate code block content
 
-puts(file_all)
-puts("=" * 50)
-puts(assembly_map)
-puts("=" * 50)
-puts(addr_map)
-puts("=" * 50)
-puts(file_map)
-puts("=" * 50)
-puts(code_map)
+# puts(file_all)
+# puts("=" * 50)
+# puts(assembly_map)
+# puts("=" * 50)
+# puts(addr_map)
+# puts("=" * 50)
+# puts(file_map)
+# puts("=" * 50)
+# puts(code_map)
 
 
 # Generate HTML
@@ -168,7 +168,6 @@ class Product
             'src' => src,
             'file_name' => file_name
         }
-        puts(code_block)
         @code_blocks << code_block
     end
 
