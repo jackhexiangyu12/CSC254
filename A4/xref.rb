@@ -120,6 +120,12 @@ addr_map.each { |key, table|
         file_name = file_map[key][file_num]
 
         asm_code = Array.new
+        offset = line_end - line_start
+        if offset > 0
+            for j in line_start..line_end - 1
+                asm_code << ["", ""]
+            end
+        end
         for j in addr_start..addr_end
             if assembly_map[j] != nil
                 asm_code << [j.to_s(16), assembly_map[j][0]]
@@ -151,7 +157,7 @@ addr_map.each { |key, table|
 # puts("=" * 50)
 # puts(file_map)
 # puts("=" * 50)
-# puts(code_map_asm)
+puts(code_map_asm)
 
 # By source file
 
@@ -240,17 +246,15 @@ template = %{
                 <span>~</span>
                 <pre class="prettyprint lang-c linenums:1">
                     <% code_block['asm'].each do |asm| %>
-                        <a name=<%= "asmline" + asm[0] %> href=<%= "#asmline" + asm[0] %> ><%= asm[1].sub('\t', '</a>') %>
-                    <% end %>
-                    </pre>   
+                        <a name=<%= "asmline" + asm[0] %> href=<%= "#asmline" + asm[0] %>><%= asm[1].sub('\t', '</a>') %>\n
+                    <%end%></pre>  
             </div>
             <div class="src-block">
                 <span><%= code_block['file_name'] %></span>
                 <pre class="prettyprint lang-c linenums:1">
                     <% code_block['src'].each do |src| %>
                         <%= src %>
-                    <% end %>
-                    </pre>
+                    <% end %></pre>
             </div>
         </div>
     <% end %>
@@ -258,7 +262,7 @@ template = %{
     </html>
 }.gsub(/^  /, '')
 
-rhtml = ERB.new(template)
+rhtml = ERB.new(template, 0, '>')
 cross_indexor = Product.new(exec_name)
 
 code_map_asm.each { |addr, content|
