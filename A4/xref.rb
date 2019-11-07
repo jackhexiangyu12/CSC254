@@ -9,6 +9,8 @@ end
 
 exec_name = ARGV[0]
 
+# By assembly or by source
+
 # Set regex for objdump and dwarfdump
 
 obj_reg =   /^(?<first>[0-9a-f]+ <(?<name>\S+)>:)|^  (?<addr>[0-9a-f]+:\t*(?: *[0-9a-f]{2})+ *\t[a-z]+ *[a-zA-Z0-9$,\%_\-\(\)\# \*\<\>\.\:\@\+\/\\]*)/
@@ -37,7 +39,7 @@ assembly_map = Hash.new
 
 obj.each { |l|
     if l[2] != nil
-        assembly_map[l[2].to_i(16)] = [l[2..5]]
+        assembly_map[l[2].to_i(16)] = l[2..5]
     end
 }
 
@@ -87,7 +89,7 @@ file_all = Hash.new
 addr_map.each { |key, table|
     for i in 0..table.length-1
         file_num = table[i][3]
-        file_name = file_map[key][file_num.to_i]
+        file_name = file_map[key][file_num.to_i(10)]
 
         if !file_all.key?(file_name)
             file_content = Array.new
@@ -96,46 +98,47 @@ addr_map.each { |key, table|
             }
             file_all[file_name] = file_content
         end
-       
     end
 }
 
+# By assenbly file
 
-
-# By asm file
-
-code_map = Hash.new
+code_map_asm = Hash.new
 
 addr_map.each { |key, table|
-
     for i in 0..table.length-2
         addr_start = table[i][0].to_i(16)
         addr_end = table[i+1][0].to_i(16) - 1
 
-        line = table[i][1].to_i(10)
+        line_start = 0
+        if i != 0
+            line_start = table[i-1][1].to_i(10)+1
+        end
+        line_end = table[i][1].to_i(10)
 
         file_num = table[i][3].to_i(10)
         file_name = file_map[key][file_num]
 
         asm_code = Array.new
-        for i in addr_start..addr_end
-            # puts(i, assembly_map[i])
-            if assembly_map[i] != nil
-                asm_code << [i.to_s(16), assembly_map[i][0][0]]
+        for j in addr_start..addr_end
+            if assembly_map[j] != nil
+                asm_code << [j.to_s(16), assembly_map[j][0]]
             end
+        end
+
+        src_code = Array.new
+        for j in line_start..line_end
+            src_code << file_all[file_name][j]
         end
 
         content = {
             "asm" => asm_code.compact,
             "file_name" => file_name,
-            "file_num" => file_num,
-            "line_num" => line + 1,
-            "src" => file_all[file_name][line]
+            "src" => src_code.compact
         }
 
-        code_map[addr_start] = content
+        code_map_asm[addr_start] = content
     end
-
 }
 
 # Generate code block content
@@ -148,7 +151,27 @@ addr_map.each { |key, table|
 # puts("=" * 50)
 # puts(file_map)
 # puts("=" * 50)
-# puts(code_map)
+# puts(code_map_asm)
+
+# By source file
+
+# code_map_src = Hash.new
+
+# addr_map.each { |key, table|
+#     for i in 0..table.length-2
+#         addr_1 = table[i][0].to_i(16)
+#         addr_2 = table[i+1][0].to_i(16)
+
+#         assembly_list = Array.new
+#         for j in addr_1..addr_2-1
+#             assembly_list.push(assembly_map[j])
+#         end
+
+#         file_num = table[i][3]
+#         file_name = file_map[key][file_num.to_i]
+
+#     end
+# }
 
 
 # Generate HTML
@@ -159,7 +182,6 @@ class Product
     def initialize(executable)
         @exec_name = executable
         @code_blocks = [ ]
-        
     end
 
     def add_code_block(asm, src, file_name)
@@ -171,11 +193,10 @@ class Product
         @code_blocks << code_block
     end
 
-     # Support templating of member data.
+    # Support templating of member data.
     def get_binding
         binding
     end
-        
 end
 
 template = %{
@@ -184,7 +205,6 @@ template = %{
     <head>
         <meta charset="UTF-8">
         <title>xref for binary: <%= @exec_name %></title>
-
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
         <style>
             .code-block {
@@ -221,13 +241,16 @@ template = %{
                 <pre class="prettyprint lang-c linenums:1">
                     <% code_block['asm'].each do |asm| %>
                         <a name=<%= "asmline" + asm[0] %> href=<%= "#asmline" + asm[0] %> ><%= asm[1].sub('\t', '</a>') %>
-                    <%end%> 
+                    <% end %>
                     </pre>   
             </div>
             <div class="src-block">
                 <span><%= code_block['file_name'] %></span>
                 <pre class="prettyprint lang-c linenums:1">
-                    <%= code_block['src'] %></pre>
+                    <% code_block['src'].each do |src| %>
+                        <%= src %>
+                    <% end %>
+                    </pre>
             </div>
         </div>
     <% end %>
@@ -235,11 +258,10 @@ template = %{
     </html>
 }.gsub(/^  /, '')
 
-
 rhtml = ERB.new(template)
 cross_indexor = Product.new(exec_name)
 
-code_map.each { |addr, content|
+code_map_asm.each { |addr, content|
     cross_indexor.add_code_block(content['asm'], content['src'], content['file_name'])
 }
 
@@ -247,7 +269,3 @@ code_map.each { |addr, content|
 out = rhtml.result(cross_indexor.get_binding)
 # puts(out)
 File.open("outputs/index.html", 'w') { |f| f.write(out) }
-
-
-
-
