@@ -256,7 +256,7 @@ template = %{
                 <pre class="prettyprint lang-c linenums:1">
 <% code_block['asm'].each do |asm| %>
 <a name=<%= "asmline" + asm[0] %> href=<%= "#asmline" + asm[0] %>><%= asm[1].sub('\t', '</a>') %>
-<%end%></pre>  
+<%end%></pre>
             </div>
             <div class="src-block">
                 <span><%= code_block['file_name'] %></span>
