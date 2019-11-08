@@ -111,7 +111,7 @@ addr_map.each { |key, table|
         addr_start = table[i][0].to_i(16)
         addr_end = table[i+1][0].to_i(16) - 1
 
-        line_start = 0
+        line_start = 1
         if i != 0
             line_start = table[i-1][1].to_i(10)+1
         end
