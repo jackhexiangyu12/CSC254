@@ -123,6 +123,13 @@ addr_map.each { |key, table|
         if code_map_asm.key?(addr_start)
             asm_code = code_map_asm[addr_start]['asm']
             src_code = code_map_asm[addr_start]['src']
+            if src_code[-1] != nil && src_code[-1][1] != nil
+                src_code[-1][1] = src_code[-1][1] + "\n"
+            end
+    
+            if asm_code[-1] != nil && asm_code[-1][-1] != nil
+                asm_code[-1][-1] = asm_code[-1][-1] + "\n"
+            end
         else
             asm_code = Array.new
             src_code = Array.new
@@ -143,7 +150,7 @@ addr_map.each { |key, table|
                     asm_tmp = asm_tmp.sub(asm_tmp_called_addr, "<span class=\"nocode\"><a href=#asmline"+asm_tmp_called_addr+">"+asm_tmp_called_addr+"</a></span>")
                 end
 
-                asm_code << [j.to_s(16), asm_tmp + "\n"]
+                asm_code << [j.to_s(16), asm_tmp + "\n", ]
             end
         end
 
