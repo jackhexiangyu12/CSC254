@@ -146,11 +146,11 @@ addr_map.each { |key, table|
             end
         end
 
-        if src_code[-1][1] != nil
+        if src_code[-1] != nil && src_code[-1][1] != nil
             src_code[-1][1] = src_code[-1][1].sub("\n", "")
         end
 
-        if asm_code[-1][-1] != nil
+        if asm_code[-1] != nil && asm_code[-1][-1] != nil
             asm_code[-1][-1] = asm_code[-1][-1].sub("\n", "")
         end
 
