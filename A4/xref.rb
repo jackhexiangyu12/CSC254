@@ -136,11 +136,17 @@ addr_map.each { |key, table|
         end
         for j in addr_start..addr_end
             if assembly_map[j] != nil
-                asm_code << [j.to_s(16), assembly_map[j][0] + "\n"]
+                asm_tmp = assembly_map[j][0]
+                asm_tmp_split = asm_tmp.split(" ")
+                if asm_tmp_split[-1].include?("<")
+                    asm_tmp_called_addr = asm_tmp_split[-2]
+                    asm_tmp = asm_tmp.sub(asm_tmp_called_addr, "<span class=\"nocode\"><a href=#asmline"+asm_tmp_called_addr+">"+asm_tmp_called_addr+"</a></span>")
+                end
+
+                asm_code << [j.to_s(16), asm_tmp + "\n"]
             end
         end
 
-        
         for j in line_start..line_end
             if file_all[file_name][j][2]
                 src_code << [file_all[file_name][j][0], "<span class=\"nocode\"><font color=\"grey\">"+file_all[file_name][j][1]+"</font></span>", file_all[file_name][j][2]]
@@ -293,7 +299,5 @@ code_map_asm.each { |addr, content|
     cross_indexor.add_code_block(content['asm'], content['src'], content['file_name'])
 }
 
-# rhtml.run(cross_indexor.get_binding)
 out = rhtml.result(cross_indexor.get_binding)
-# puts(out)
-File.open("outputs/index.html", 'w') { |f| f.write(out) }
+File.open("index.html", 'w') { |f| f.write(out) }
