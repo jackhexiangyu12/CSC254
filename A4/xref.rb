@@ -148,10 +148,14 @@ addr_map.each { |key, table|
         end
 
         for j in line_start..line_end
-            if file_all[file_name][j][2]
-                src_code << [file_all[file_name][j][0], "<span class=\"nocode\"><font color=\"grey\">"+file_all[file_name][j][1]+"</font></span>", file_all[file_name][j][2]]
-            else
-                src_code << file_all[file_name][j]
+            # if file_all[file_name][j][2]
+            #     src_code << [file_all[file_name][j][0], "<span class=\"nocode\"><font color=\"grey\">"+file_all[file_name][j][1]+"</font></span>", file_all[file_name][j][2]]
+            # else
+            #     src_code << file_all[file_name][j]
+            # end
+
+            if file_all[file_name][2]
+                src_code << [file_all[file_name][j][0], file_all[file_name][j][1], file_all[file_name][j][2]]
             end
             
             if !file_all[file_name][j][2]
@@ -283,7 +287,7 @@ template = %{
                 <span><%= code_block['file_name'] %></span>
                 <pre class="prettyprint lang-c">
 <% code_block['src'].each do |src| %>
-<%= src[0]+". "+src[1] %>
+<% if !src[2] %><%= src[0]+". "+src[1] %><% else %><span class="nocode"><font color="grey"><%= src[0] + ". " + src[1] %></font></span><% end %>
 <% end %></pre>
             </div>
         </div>
