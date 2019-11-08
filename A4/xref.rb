@@ -95,7 +95,7 @@ addr_map.each { |key, table|
             file_content = Array.new
             file_content.push("")
             File.foreach(file_name).with_index { |line, line_num|
-                file_content.push([line_num, line, false])
+                file_content.push(["<span class=\"nocode\">"+line_num.to_s+"</span>", line, false])
             }
             file_all[file_name] = file_content
         end
@@ -136,7 +136,7 @@ addr_map.each { |key, table|
         src_code = Array.new
         for j in line_start..line_end
             if file_all[file_name][j][2]
-                src_code << file_all[file_name][j]
+                src_code << [file_all[file_name][j][0], "<span class=\"nocode\"><font color=\"grey\">"+file_all[file_name][j][1]+"</font></span>", file_all[file_name][j][2]]
             else
                 src_code << file_all[file_name][j]
             end
@@ -270,7 +270,7 @@ template = %{
                 <span><%= code_block['file_name'] %></span>
                 <pre class="prettyprint lang-c">
 <% code_block['src'].each do |src| %>
-<% if !src[2] %><%= src[0].to_s+". "+src[1] %><% else %><font color="grey"><%= src[0].to_s+". "+src[1] %></font><% end %>
+<%= src[0]+". "+src[1] %>
 <% end %></pre>
             </div>
         </div>
