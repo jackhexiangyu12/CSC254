@@ -111,11 +111,14 @@ addr_map.each { |key, table|
         addr_start = table[i][0].to_i(16)
         addr_end = table[i+1][0].to_i(16) - 1
 
+        line_end = table[i][1].to_i(10)
         line_start = 1
         if i != 0
             line_start = table[i-1][1].to_i(10)+1
+            
+            # if file_all[file_name][line_start][2]
+
         end
-        line_end = table[i][1].to_i(10)
 
         file_num = table[i][3].to_i(10)
         file_name = file_map[key][file_num]
@@ -141,6 +144,7 @@ addr_map.each { |key, table|
                 asm_code << [" ", "\n"]
             end
         end
+
         for j in addr_start..addr_end
             if assembly_map[j] != nil
                 asm_tmp = assembly_map[j][0]
@@ -161,9 +165,7 @@ addr_map.each { |key, table|
             #     src_code << file_all[file_name][j]
             # end
 
-            if file_all[file_name][2]
-                src_code << [file_all[file_name][j][0], file_all[file_name][j][1], file_all[file_name][j][2]]
-            end
+            src_code << [file_all[file_name][j][0], file_all[file_name][j][1], file_all[file_name][j][2]]
             
             if !file_all[file_name][j][2]
                 file_all[file_name][j][2] = true
