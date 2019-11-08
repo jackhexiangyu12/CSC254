@@ -3,17 +3,17 @@
 
 # define A_CONSTANT 10
 
-static int sfunc()
-{
+static int sfunc() {
    return 1;
 }
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]) {
    int a = A_CONSTANT;
    int x = 8;
    int t = x;
-   pf();
+   for (int i = 3; i < t; i++) {
+      pf();
+   }
    printf("Hello, World!");
    return 0;
 }
