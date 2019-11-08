@@ -265,7 +265,7 @@ template = %{
                 <span><%= code_block['file_name'] %></span>
                 <pre class="prettyprint lang-c linenums:1">
 <% code_block['src'].each do |src| %>
-<%= src[0] %>
+<% if !src[1] %><%= src[0] %><% else %><font color="grey"><%= src[0] %></font><% end %>
 <% end %></pre>
             </div>
         </div>
