@@ -123,12 +123,12 @@ addr_map.each { |key, table|
         offset = line_end - line_start
         if offset > 0
             for j in line_start..line_end - 1
-                asm_code << [" ", " "]
+                asm_code << [" ", "\n"]
             end
         end
         for j in addr_start..addr_end
             if assembly_map[j] != nil
-                asm_code << [j.to_s(16), assembly_map[j][0]]
+                asm_code << [j.to_s(16), assembly_map[j][0] + "\n"]
             end
         end
 
@@ -136,9 +136,13 @@ addr_map.each { |key, table|
         for j in line_start..line_end
             src_code << file_all[file_name][j]
         end
-        puts(src_code[-1])
+
         if src_code[-1] != nil
             src_code[-1] = src_code[-1].sub("\n", "")
+        end
+
+        if asm_code[-1][-1] != nil
+            asm_code[-1][-1] = asm_code[-1][-1].sub("\n", "")
         end
 
         content = {
@@ -250,7 +254,7 @@ template = %{
                 <span>~</span>
                 <pre class="prettyprint lang-c linenums:1">
                     <% code_block['asm'].each do |asm| %>
-                        <a name=<%= "asmline" + asm[0] %> href=<%= "#asmline" + asm[0] %>><%= asm[1].sub('\t', '</a>') %>\n
+                        <a name=<%= "asmline" + asm[0] %> href=<%= "#asmline" + asm[0] %>><%= asm[1].sub('\t', '</a>') %>
                     <%end%></pre>  
             </div>
             <div class="src-block">
