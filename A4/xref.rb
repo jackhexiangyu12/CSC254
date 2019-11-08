@@ -254,16 +254,16 @@ template = %{
             <div class="asm-block">
                 <span>~</span>
                 <pre class="prettyprint lang-c linenums:1">
-                    <% code_block['asm'].each do |asm| %>
-                        <a name=<%= "asmline" + asm[0] %> href=<%= "#asmline" + asm[0] %>><%= asm[1].sub('\t', '</a>') %>
-                    <%end%></pre>  
+<% code_block['asm'].each do |asm| %>
+<a name=<%= "asmline" + asm[0] %> href=<%= "#asmline" + asm[0] %>><%= asm[1].sub('\t', '</a>') %>
+<%end%></pre>  
             </div>
             <div class="src-block">
                 <span><%= code_block['file_name'] %></span>
                 <pre class="prettyprint lang-c linenums:1">
-                    <% code_block['src'].each do |src| %>
-                        <%= src %>
-                    <% end %></pre>
+<% code_block['src'].each do |src| %>
+<%= src %>
+<% end %></pre>
             </div>
         </div>
     <% end %>
