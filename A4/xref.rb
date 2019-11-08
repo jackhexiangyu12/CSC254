@@ -95,7 +95,7 @@ addr_map.each { |key, table|
             file_content = Array.new
             file_content.push("")
             File.foreach(file_name).with_index { |line, line_num|
-                file_content.push([line, false])
+                file_content.push([line_num, line, false])
             }
             file_all[file_name] = file_content
         end
@@ -135,14 +135,19 @@ addr_map.each { |key, table|
 
         src_code = Array.new
         for j in line_start..line_end
-            src_code << file_all[file_name][j]
-            if !file_all[file_name][j][1]
-                file_all[file_name][j][1] = true
+            if file_all[file_name][j][2]
+                src_code << file_all[file_name][j]
+            else
+                src_code << file_all[file_name][j]
+            end
+            
+            if !file_all[file_name][j][2]
+                file_all[file_name][j][2] = true
             end
         end
 
-        if src_code[-1][0] != nil
-            src_code[-1][0] = src_code[-1][0].sub("\n", "")
+        if src_code[-1][1] != nil
+            src_code[-1][1] = src_code[-1][1].sub("\n", "")
         end
 
         if asm_code[-1][-1] != nil
@@ -256,16 +261,16 @@ template = %{
         <div class="code-block">
             <div class="asm-block">
                 <span>~</span>
-                <pre class="prettyprint lang-c linenums:1">
+                <pre class="prettyprint lang-c">
 <% code_block['asm'].each do |asm| %>
 <a name=<%= "asmline" + asm[0] %> href=<%= "#asmline" + asm[0] %>><%= asm[1].sub('\t', '</a>') %>
 <%end%></pre>
             </div>
             <div class="src-block">
                 <span><%= code_block['file_name'] %></span>
-                <pre class="prettyprint lang-c linenums:1">
+                <pre class="prettyprint lang-c">
 <% code_block['src'].each do |src| %>
-<% if !src[1] %><%= src[0] %><% else %><font color="grey"><%= src[0] %></font><% end %>
+<% if !src[2] %><%= src[0].to_s+". "+src[1] %><% else %><font color="grey"><%= src[0].to_s+". "+src[1] %></font><% end %>
 <% end %></pre>
             </div>
         </div>
