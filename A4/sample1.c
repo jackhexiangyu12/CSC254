@@ -3,6 +3,11 @@
 
 # define A_CONSTANT 10
 
+static int sfunc()
+{
+   return 1;
+}
+
 int main(int argc, char* argv[])
 {
    int a = A_CONSTANT;
