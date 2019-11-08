@@ -93,6 +93,7 @@ addr_map.each { |key, table|
 
         if !file_all.key?(file_name)
             file_content = Array.new
+            file_content.push("")
             File.foreach(file_name).with_index { |line, line_num|
                 file_content.push(line)
             }
@@ -165,7 +166,7 @@ addr_map.each { |key, table|
 # puts("=" * 50)
 # puts(file_map)
 # puts("=" * 50)
-puts(code_map_asm)
+# puts(code_map_asm)
 
 # By source file
 
