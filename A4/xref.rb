@@ -107,6 +107,17 @@ addr_map.each { |key, table|
 code_map_asm = Hash.new
 
 addr_map.each { |key, table|
+    
+    for i in 0..table.length-2
+        addr = table[i][0].to_i(16)
+        code_map_asm[addr] = {}
+    end
+
+}
+
+
+addr_map.each { |key, table|
+
     for i in 0..table.length-2
         addr_start = table[i][0].to_i(16)
         addr_end = table[i+1][0].to_i(16) - 1
@@ -123,7 +134,7 @@ addr_map.each { |key, table|
         file_num = table[i][3].to_i(10)
         file_name = file_map[key][file_num]
 
-        if code_map_asm.key?(addr_start)
+        if code_map_asm[addr_start].key?('asm')
             asm_code = code_map_asm[addr_start]['asm']
             src_code = code_map_asm[addr_start]['src']
             if src_code[-1] != nil && src_code[-1][1] != nil
@@ -159,11 +170,6 @@ addr_map.each { |key, table|
         end
 
         for j in line_start..line_end
-            # if file_all[file_name][j][2]
-            #     src_code << [file_all[file_name][j][0], "<span class=\"nocode\"><font color=\"grey\">"+file_all[file_name][j][1]+"</font></span>", file_all[file_name][j][2]]
-            # else
-            #     src_code << file_all[file_name][j]
-            # end
 
             src_code << [file_all[file_name][j][0], file_all[file_name][j][1], file_all[file_name][j][2]]
             
