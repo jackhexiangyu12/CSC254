@@ -120,7 +120,14 @@ addr_map.each { |key, table|
         file_num = table[i][3].to_i(10)
         file_name = file_map[key][file_num]
 
-        asm_code = Array.new
+        if code_map_asm.key?(addr_start)
+            asm_code = code_map_asm[addr_start]['asm']
+            src_code = code_map_asm[addr_start]['src']
+        else
+            asm_code = Array.new
+            src_code = Array.new
+        end
+        
         offset = line_end - line_start
         if offset > 0
             for j in line_start..line_end - 1
@@ -133,7 +140,7 @@ addr_map.each { |key, table|
             end
         end
 
-        src_code = Array.new
+        
         for j in line_start..line_end
             if file_all[file_name][j][2]
                 src_code << [file_all[file_name][j][0], "<span class=\"nocode\"><font color=\"grey\">"+file_all[file_name][j][1]+"</font></span>", file_all[file_name][j][2]]
