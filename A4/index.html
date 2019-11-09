@@ -3,7 +3,7 @@
   <html lang="en">
   <head>
       <meta charset="UTF-8">
-      <title>xref for binary: sample.o</title>
+      <title>xref for binary: online2.o</title>
       <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
       <style>
           .code-block {
@@ -32,53 +32,174 @@
       </style>
   </head>
   <body>
-  <h2>xref for binary: sample.o </h2>
+  <h2>xref for binary: online2.o </h2>
         <div class="code-block">
           <div class="asm-block">
               <span>~</span>
               <pre class="prettyprint lang-c">
+<a name=asmline  href=#asmline >
+<a name=asmline  href=#asmline >
 <a name=asmline  href=#asmline >
 <a name=asmline  href=#asmline >
 <a name=asmline  href=#asmline >
 <a name=asmline  href=#asmline >
 <a name=asmline  href=#asmline >
 <a name=asmline401126 href=#asmline401126>401126:</a>55                   	push   %rbp
-<a name=asmline401127 href=#asmline401127>401127:</a>48 89 e5             	mov    %rsp,%rbp</pre>
+<a name=asmline401127 href=#asmline401127>401127:</a>48 89 e5             	mov    %rsp,%rbp
+<a name=asmline40112a href=#asmline40112a>40112a:</a>48 83 ec 20          	sub    $0x20,%rsp
+<a name=asmline40112e href=#asmline40112e>40112e:</a>89 7d ec             	mov    %edi,-0x14(%rbp)
+<a name=asmline401131 href=#asmline401131>401131:</a>48 89 75 e0          	mov    %rsi,-0x20(%rbp)</pre>
           </div>
           <div class="src-block">
-              <span>sample1.c</span>
+              <span>hello.c</span>
               <pre class="prettyprint lang-c">
-<span class="nocode">1</span>. # include <stdio.h>
-<span class="nocode">2</span>. # include "sample2.h"
-<span class="nocode">3</span>. 
-<span class="nocode">4</span>. # define A_CONSTANT 10
-<span class="nocode">5</span>. 
-<span class="nocode">6</span>. static int sfunc() {</pre>
+<span class="nocode">1</span>. #include <stdio.h>
+<span class="nocode">2</span>. #include "fib.h"
+<span class="nocode">3</span>. #define A_CONST_NUM 10
+<span class="nocode">4</span>.  
+<span class="nocode">5</span>. // A quick test program
+<span class="nocode">6</span>.  
+<span class="nocode">7</span>.  
+<span class="nocode">8</span>. int main(int argc, char* argv[]) {</pre>
           </div>
       </div>
         <div class="code-block">
           <div class="asm-block">
               <span>~</span>
               <pre class="prettyprint lang-c">
-<a name=asmline40112a href=#asmline40112a>40112a:</a>b8 01 00 00 00       	mov    $0x1,%eax</pre>
+<a name=asmline401135 href=#asmline401135>401135:</a>c7 45 f4 04 00 00 00 	movl   $0x4,-0xc(%rbp)</pre>
           </div>
           <div class="src-block">
-              <span>sample1.c</span>
+              <span>hello.c</span>
               <pre class="prettyprint lang-c">
-<span class="nocode">7</span>.    return 1;</pre>
+<span class="nocode">9</span>.     int a = 4;</pre>
           </div>
       </div>
         <div class="code-block">
           <div class="asm-block">
               <span>~</span>
               <pre class="prettyprint lang-c">
-<a name=asmline40112f href=#asmline40112f>40112f:</a>5d                   	pop    %rbp
-<a name=asmline401130 href=#asmline401130>401130:</a>c3                   	retq   </pre>
+<a name=asmline40113c href=#asmline40113c>40113c:</a>83 7d f4 09          	cmpl   $0x9,-0xc(%rbp)
+<a name=asmline401140 href=#asmline401140>401140:</a>7f 4b                	jg     <span class="nocode"><a href=#asmline40118d>40118d</a></span> <main+0x67></pre>
           </div>
           <div class="src-block">
-              <span>sample1.c</span>
+              <span>hello.c</span>
               <pre class="prettyprint lang-c">
-<span class="nocode">8</span>. }</pre>
+<span class="nocode">10</span>.     if (a < A_CONST_NUM) {</pre>
+          </div>
+      </div>
+        <div class="code-block">
+          <div class="asm-block">
+              <span>~</span>
+              <pre class="prettyprint lang-c">
+<a name=asmline401142 href=#asmline401142>401142:</a>c7 45 fc 00 00 00 00 	movl   $0x0,-0x4(%rbp)</pre>
+          </div>
+          <div class="src-block">
+              <span>hello.c</span>
+              <pre class="prettyprint lang-c">
+<span class="nocode">11</span>.         for (int i = 0; i < 10; i++) {</pre>
+          </div>
+      </div>
+        <div class="code-block">
+          <div class="asm-block">
+              <span>~</span>
+              <pre class="prettyprint lang-c">
+<a name=asmline401149 href=#asmline401149>401149:</a>eb 2b                	jmp    <span class="nocode"><a href=#asmline401176>401176</a></span> <main+0x50></pre>
+          </div>
+          <div class="src-block">
+              <span>hello.c</span>
+              <pre class="prettyprint lang-c">
+<span class="nocode"><font color="grey"><span class="nocode">11</span>.         for (int i = 0; i < 10; i++) {</font></span></pre>
+          </div>
+      </div>
+        <div class="code-block">
+          <div class="asm-block">
+              <span>~</span>
+              <pre class="prettyprint lang-c">
+<a name=asmline40114b href=#asmline40114b>40114b:</a>8b 45 fc             	mov    -0x4(%rbp),%eax
+<a name=asmline40114e href=#asmline40114e>40114e:</a>89 c6                	mov    %eax,%esi
+<a name=asmline401150 href=#asmline401150>401150:</a>bf 10 20 40 00       	mov    $0x402010,%edi
+<a name=asmline401155 href=#asmline401155>401155:</a>b8 00 00 00 00       	mov    $0x0,%eax
+<a name=asmline40115a href=#asmline40115a>40115a:</a>e8 d1 fe ff ff       	callq  <span class="nocode"><a href=#asmline401030>401030</a></span> <printf@plt></pre>
+          </div>
+          <div class="src-block">
+              <span>hello.c</span>
+              <pre class="prettyprint lang-c">
+<span class="nocode">12</span>.             printf("Hello! %d \n", i);</pre>
+          </div>
+      </div>
+        <div class="code-block">
+          <div class="asm-block">
+              <span>~</span>
+              <pre class="prettyprint lang-c">
+<a name=asmline40115f href=#asmline40115f>40115f:</a>c7 45 f8 00 00 00 00 	movl   $0x0,-0x8(%rbp)</pre>
+          </div>
+          <div class="src-block">
+              <span>hello.c</span>
+              <pre class="prettyprint lang-c">
+<span class="nocode">13</span>.             for (int i = 0; i < 10; i++) {</pre>
+          </div>
+      </div>
+        <div class="code-block">
+          <div class="asm-block">
+              <span>~</span>
+              <pre class="prettyprint lang-c">
+<a name=asmline401166 href=#asmline401166>401166:</a>eb 04                	jmp    <span class="nocode"><a href=#asmline40116c>40116c</a></span> <main+0x46></pre>
+          </div>
+          <div class="src-block">
+              <span>hello.c</span>
+              <pre class="prettyprint lang-c">
+<span class="nocode"><font color="grey"><span class="nocode">13</span>.             for (int i = 0; i < 10; i++) {</font></span></pre>
+          </div>
+      </div>
+        <div class="code-block">
+          <div class="asm-block">
+              <span>~</span>
+              <pre class="prettyprint lang-c">
+<a name=asmline401168 href=#asmline401168>401168:</a>83 45 f8 01          	addl   $0x1,-0x8(%rbp)</pre>
+          </div>
+          <div class="src-block">
+              <span>hello.c</span>
+              <pre class="prettyprint lang-c">
+<span class="nocode"><font color="grey"><span class="nocode">13</span>.             for (int i = 0; i < 10; i++) {</font></span></pre>
+          </div>
+      </div>
+        <div class="code-block">
+          <div class="asm-block">
+              <span>~</span>
+              <pre class="prettyprint lang-c">
+<a name=asmline40116c href=#asmline40116c>40116c:</a>83 7d f8 09          	cmpl   $0x9,-0x8(%rbp)
+<a name=asmline401170 href=#asmline401170>401170:</a>7e f6                	jle    <span class="nocode"><a href=#asmline401168>401168</a></span> <main+0x42></pre>
+          </div>
+          <div class="src-block">
+              <span>hello.c</span>
+              <pre class="prettyprint lang-c">
+<span class="nocode"><font color="grey"><span class="nocode">13</span>.             for (int i = 0; i < 10; i++) {</font></span></pre>
+          </div>
+      </div>
+        <div class="code-block">
+          <div class="asm-block">
+              <span>~</span>
+              <pre class="prettyprint lang-c">
+<a name=asmline401172 href=#asmline401172>401172:</a>83 45 fc 01          	addl   $0x1,-0x4(%rbp)</pre>
+          </div>
+          <div class="src-block">
+              <span>hello.c</span>
+              <pre class="prettyprint lang-c">
+<span class="nocode"><font color="grey"><span class="nocode">11</span>.         for (int i = 0; i < 10; i++) {</font></span></pre>
+          </div>
+      </div>
+        <div class="code-block">
+          <div class="asm-block">
+              <span>~</span>
+              <pre class="prettyprint lang-c">
+<a name=asmline401176 href=#asmline401176>401176:</a>83 7d fc 09          	cmpl   $0x9,-0x4(%rbp)
+<a name=asmline40117a href=#asmline40117a>40117a:</a>7e cf                	jle    <span class="nocode"><a href=#asmline40114b>40114b</a></span> <main+0x25></pre>
+          </div>
+          <div class="src-block">
+              <span>hello.c</span>
+              <pre class="prettyprint lang-c">
+<span class="nocode"><font color="grey"><span class="nocode">11</span>.         for (int i = 0; i < 10; i++) {</font></span></pre>
           </div>
       </div>
         <div class="code-block">
@@ -86,117 +207,31 @@
               <span>~</span>
               <pre class="prettyprint lang-c">
 <a name=asmline  href=#asmline >
-<a name=asmline401131 href=#asmline401131>401131:</a>55                   	push   %rbp
-<a name=asmline401132 href=#asmline401132>401132:</a>48 89 e5             	mov    %rsp,%rbp
-<a name=asmline401135 href=#asmline401135>401135:</a>48 83 ec 20          	sub    $0x20,%rsp
-<a name=asmline401139 href=#asmline401139>401139:</a>89 7d ec             	mov    %edi,-0x14(%rbp)
-<a name=asmline40113c href=#asmline40113c>40113c:</a>48 89 75 e0          	mov    %rsi,-0x20(%rbp)</pre>
+<a name=asmline  href=#asmline >
+<a name=asmline40117c href=#asmline40117c>40117c:</a>8b 45 f4             	mov    -0xc(%rbp),%eax
+<a name=asmline40117f href=#asmline40117f>40117f:</a>89 c7                	mov    %eax,%edi
+<a name=asmline401181 href=#asmline401181>401181:</a>e8 0e 00 00 00       	callq  <span class="nocode"><a href=#asmline401194>401194</a></span> <fib></pre>
           </div>
           <div class="src-block">
-              <span>sample1.c</span>
+              <span>hello.c</span>
               <pre class="prettyprint lang-c">
-<span class="nocode">9</span>. 
-<span class="nocode">10</span>. int main(int argc, char* argv[]) {</pre>
+<span class="nocode">14</span>.             }
+<span class="nocode">15</span>.         }
+<span class="nocode">16</span>.         fib(a);</pre>
           </div>
       </div>
         <div class="code-block">
           <div class="asm-block">
               <span>~</span>
               <pre class="prettyprint lang-c">
-<a name=asmline401140 href=#asmline401140>401140:</a>c7 45 f8 0a 00 00 00 	movl   $0xa,-0x8(%rbp)</pre>
+<a name=asmline401186 href=#asmline401186>401186:</a>b8 00 00 00 00       	mov    $0x0,%eax
+<a name=asmline40118b href=#asmline40118b>40118b:</a>eb 05                	jmp    <span class="nocode"><a href=#asmline401192>401192</a></span> <main+0x6c>
+<a name=asmline40118d href=#asmline40118d>40118d:</a>b8 00 00 00 00       	mov    $0x0,%eax</pre>
           </div>
           <div class="src-block">
-              <span>sample1.c</span>
+              <span>hello.c</span>
               <pre class="prettyprint lang-c">
-<span class="nocode">11</span>.    int a = A_CONSTANT;</pre>
-          </div>
-      </div>
-        <div class="code-block">
-          <div class="asm-block">
-              <span>~</span>
-              <pre class="prettyprint lang-c">
-<a name=asmline401147 href=#asmline401147>401147:</a>c7 45 f4 08 00 00 00 	movl   $0x8,-0xc(%rbp)</pre>
-          </div>
-          <div class="src-block">
-              <span>sample1.c</span>
-              <pre class="prettyprint lang-c">
-<span class="nocode">12</span>.    int x = 8;</pre>
-          </div>
-      </div>
-        <div class="code-block">
-          <div class="asm-block">
-              <span>~</span>
-              <pre class="prettyprint lang-c">
-<a name=asmline40114e href=#asmline40114e>40114e:</a>8b 45 f4             	mov    -0xc(%rbp),%eax
-<a name=asmline401151 href=#asmline401151>401151:</a>89 45 f0             	mov    %eax,-0x10(%rbp)</pre>
-          </div>
-          <div class="src-block">
-              <span>sample1.c</span>
-              <pre class="prettyprint lang-c">
-<span class="nocode">13</span>.    int t = x;</pre>
-          </div>
-      </div>
-        <div class="code-block">
-          <div class="asm-block">
-              <span>~</span>
-              <pre class="prettyprint lang-c">
-<a name=asmline401154 href=#asmline401154>401154:</a>c7 45 fc 03 00 00 00 	movl   $0x3,-0x4(%rbp)</pre>
-          </div>
-          <div class="src-block">
-              <span>sample1.c</span>
-              <pre class="prettyprint lang-c">
-<span class="nocode">14</span>.    for (int i = 3; i < t; i++) {</pre>
-          </div>
-      </div>
-        <div class="code-block">
-          <div class="asm-block">
-              <span>~</span>
-              <pre class="prettyprint lang-c">
-<a name=asmline40115b href=#asmline40115b>40115b:</a>eb 0e                	jmp    <span class="nocode"><a href=#asmline40116b>40116b</a></span> <main+0x3a></pre>
-          </div>
-          <div class="src-block">
-              <span>sample1.c</span>
-              <pre class="prettyprint lang-c">
-<span class="nocode"><font color="grey"><span class="nocode">14</span>.    for (int i = 3; i < t; i++) {</font></span></pre>
-          </div>
-      </div>
-        <div class="code-block">
-          <div class="asm-block">
-              <span>~</span>
-              <pre class="prettyprint lang-c">
-<a name=asmline40115d href=#asmline40115d>40115d:</a>b8 00 00 00 00       	mov    $0x0,%eax
-<a name=asmline401162 href=#asmline401162>401162:</a>e8 49 00 00 00       	callq  <span class="nocode"><a href=#asmline4011b0>4011b0</a></span> <pf></pre>
-          </div>
-          <div class="src-block">
-              <span>sample1.c</span>
-              <pre class="prettyprint lang-c">
-<span class="nocode">15</span>.       pf();</pre>
-          </div>
-      </div>
-        <div class="code-block">
-          <div class="asm-block">
-              <span>~</span>
-              <pre class="prettyprint lang-c">
-<a name=asmline401167 href=#asmline401167>401167:</a>83 45 fc 01          	addl   $0x1,-0x4(%rbp)</pre>
-          </div>
-          <div class="src-block">
-              <span>sample1.c</span>
-              <pre class="prettyprint lang-c">
-<span class="nocode"><font color="grey"><span class="nocode">14</span>.    for (int i = 3; i < t; i++) {</font></span></pre>
-          </div>
-      </div>
-        <div class="code-block">
-          <div class="asm-block">
-              <span>~</span>
-              <pre class="prettyprint lang-c">
-<a name=asmline40116b href=#asmline40116b>40116b:</a>8b 45 fc             	mov    -0x4(%rbp),%eax
-<a name=asmline40116e href=#asmline40116e>40116e:</a>3b 45 f0             	cmp    -0x10(%rbp),%eax
-<a name=asmline401171 href=#asmline401171>401171:</a>7c ea                	jl     <span class="nocode"><a href=#asmline40115d>40115d</a></span> <main+0x2c></pre>
-          </div>
-          <div class="src-block">
-              <span>sample1.c</span>
-              <pre class="prettyprint lang-c">
-<span class="nocode"><font color="grey"><span class="nocode">14</span>.    for (int i = 3; i < t; i++) {</font></span></pre>
+<span class="nocode">17</span>.         return 0;</pre>
           </div>
       </div>
         <div class="code-block">
@@ -204,39 +239,13 @@
               <span>~</span>
               <pre class="prettyprint lang-c">
 <a name=asmline  href=#asmline >
-<a name=asmline401173 href=#asmline401173>401173:</a>bf 10 20 40 00       	mov    $0x402010,%edi
-<a name=asmline401178 href=#asmline401178>401178:</a>b8 00 00 00 00       	mov    $0x0,%eax
-<a name=asmline40117d href=#asmline40117d>40117d:</a>e8 ae fe ff ff       	callq  <span class="nocode"><a href=#asmline401030>401030</a></span> <printf@plt></pre>
+<a name=asmline401192 href=#asmline401192>401192:</a>c9                   	leaveq 
+<a name=asmline401193 href=#asmline401193>401193:</a>c3                   	retq   </pre>
           </div>
           <div class="src-block">
-              <span>sample1.c</span>
+              <span>hello.c</span>
               <pre class="prettyprint lang-c">
-<span class="nocode">16</span>.    }
-<span class="nocode">17</span>.    printf("Hello, World!");</pre>
-          </div>
-      </div>
-        <div class="code-block">
-          <div class="asm-block">
-              <span>~</span>
-              <pre class="prettyprint lang-c">
-<a name=asmline401182 href=#asmline401182>401182:</a>b8 00 00 00 00       	mov    $0x0,%eax</pre>
-          </div>
-          <div class="src-block">
-              <span>sample1.c</span>
-              <pre class="prettyprint lang-c">
-<span class="nocode">18</span>.    return 0;</pre>
-          </div>
-      </div>
-        <div class="code-block">
-          <div class="asm-block">
-              <span>~</span>
-              <pre class="prettyprint lang-c">
-<a name=asmline401187 href=#asmline401187>401187:</a>c9                   	leaveq 
-<a name=asmline401188 href=#asmline401188>401188:</a>c3                   	retq   </pre>
-          </div>
-          <div class="src-block">
-              <span>sample1.c</span>
-              <pre class="prettyprint lang-c">
+<span class="nocode">18</span>.     }
 <span class="nocode">19</span>. }</pre>
           </div>
       </div>
@@ -246,55 +255,44 @@
               <pre class="prettyprint lang-c">
 <a name=asmline  href=#asmline >
 <a name=asmline  href=#asmline >
-<a name=asmline401189 href=#asmline401189>401189:</a>55                   	push   %rbp
-<a name=asmline40118a href=#asmline40118a>40118a:</a>48 89 e5             	mov    %rsp,%rbp
-<a name=asmline40118d href=#asmline40118d>40118d:</a>48 83 ec 10          	sub    $0x10,%rsp</pre>
+<a name=asmline401194 href=#asmline401194>401194:</a>55                   	push   %rbp
+<a name=asmline401195 href=#asmline401195>401195:</a>48 89 e5             	mov    %rsp,%rbp
+<a name=asmline401198 href=#asmline401198>401198:</a>53                   	push   %rbx
+<a name=asmline401199 href=#asmline401199>401199:</a>48 83 ec 18          	sub    $0x18,%rsp
+<a name=asmline40119d href=#asmline40119d>40119d:</a>89 7d ec             	mov    %edi,-0x14(%rbp)</pre>
           </div>
           <div class="src-block">
-              <span>sample2.c</span>
+              <span>fib.c</span>
               <pre class="prettyprint lang-c">
-<span class="nocode">1</span>. # include "sample2.h"
+<span class="nocode">1</span>. #include "fib.h"
 <span class="nocode">2</span>. 
-<span class="nocode">3</span>. static int sfunc() {</pre>
+<span class="nocode">3</span>. int fib(int a) {</pre>
           </div>
       </div>
         <div class="code-block">
           <div class="asm-block">
               <span>~</span>
               <pre class="prettyprint lang-c">
-<a name=asmline401191 href=#asmline401191>401191:</a>c7 45 fc 01 00 00 00 	movl   $0x1,-0x4(%rbp)</pre>
+<a name=asmline4011a0 href=#asmline4011a0>4011a0:</a>83 7d ec 01          	cmpl   $0x1,-0x14(%rbp)
+<a name=asmline4011a4 href=#asmline4011a4>4011a4:</a>7f 05                	jg     <span class="nocode"><a href=#asmline4011ab>4011ab</a></span> <fib+0x17></pre>
           </div>
           <div class="src-block">
-              <span>sample2.c</span>
+              <span>fib.c</span>
               <pre class="prettyprint lang-c">
-<span class="nocode">4</span>.    int a = 1;</pre>
+<span class="nocode">4</span>.     if (a < 2) {</pre>
           </div>
       </div>
         <div class="code-block">
           <div class="asm-block">
               <span>~</span>
               <pre class="prettyprint lang-c">
-<a name=asmline401198 href=#asmline401198>401198:</a>83 7d fc 01          	cmpl   $0x1,-0x4(%rbp)
-<a name=asmline40119c href=#asmline40119c>40119c:</a>7f 0f                	jg     <span class="nocode"><a href=#asmline4011ad>4011ad</a></span> <sfunc+0x24></pre>
+<a name=asmline4011a6 href=#asmline4011a6>4011a6:</a>8b 45 ec             	mov    -0x14(%rbp),%eax
+<a name=asmline4011a9 href=#asmline4011a9>4011a9:</a>eb 1e                	jmp    <span class="nocode"><a href=#asmline4011c9>4011c9</a></span> <fib+0x35></pre>
           </div>
           <div class="src-block">
-              <span>sample2.c</span>
+              <span>fib.c</span>
               <pre class="prettyprint lang-c">
-<span class="nocode">5</span>.    if (a < 2) {</pre>
-          </div>
-      </div>
-        <div class="code-block">
-          <div class="asm-block">
-              <span>~</span>
-              <pre class="prettyprint lang-c">
-<a name=asmline40119e href=#asmline40119e>40119e:</a>bf 1e 20 40 00       	mov    $0x40201e,%edi
-<a name=asmline4011a3 href=#asmline4011a3>4011a3:</a>b8 00 00 00 00       	mov    $0x0,%eax
-<a name=asmline4011a8 href=#asmline4011a8>4011a8:</a>e8 83 fe ff ff       	callq  <span class="nocode"><a href=#asmline401030>401030</a></span> <printf@plt></pre>
-          </div>
-          <div class="src-block">
-              <span>sample2.c</span>
-              <pre class="prettyprint lang-c">
-<span class="nocode">6</span>.       printf("sfunc in sample2");</pre>
+<span class="nocode">5</span>.          return a;</pre>
           </div>
       </div>
         <div class="code-block">
@@ -302,15 +300,17 @@
               <span>~</span>
               <pre class="prettyprint lang-c">
 <a name=asmline  href=#asmline >
-<a name=asmline4011ad href=#asmline4011ad>4011ad:</a>90                   	nop
-<a name=asmline4011ae href=#asmline4011ae>4011ae:</a>c9                   	leaveq 
-<a name=asmline4011af href=#asmline4011af>4011af:</a>c3                   	retq   </pre>
+<a name=asmline4011ab href=#asmline4011ab>4011ab:</a>8b 45 ec             	mov    -0x14(%rbp),%eax
+<a name=asmline4011ae href=#asmline4011ae>4011ae:</a>83 e8 02             	sub    $0x2,%eax
+<a name=asmline4011b1 href=#asmline4011b1>4011b1:</a>89 c7                	mov    %eax,%edi
+<a name=asmline4011b3 href=#asmline4011b3>4011b3:</a>e8 dc ff ff ff       	callq  <span class="nocode"><a href=#asmline401194>401194</a></span> <fib>
+<a name=asmline4011b8 href=#asmline4011b8>4011b8:</a>89 c3                	mov    %eax,%ebx</pre>
           </div>
           <div class="src-block">
-              <span>sample2.c</span>
+              <span>fib.c</span>
               <pre class="prettyprint lang-c">
-<span class="nocode">7</span>.    }
-<span class="nocode">8</span>. }</pre>
+<span class="nocode">6</span>.     } else {
+<span class="nocode">7</span>.         return fib(a-2) + fib(a-1);</pre>
           </div>
       </div>
         <div class="code-block">
@@ -318,68 +318,47 @@
               <span>~</span>
               <pre class="prettyprint lang-c">
 <a name=asmline  href=#asmline >
-<a name=asmline4011b0 href=#asmline4011b0>4011b0:</a>55                   	push   %rbp
-<a name=asmline4011b1 href=#asmline4011b1>4011b1:</a>48 89 e5             	mov    %rsp,%rbp
-<a name=asmline4011b4 href=#asmline4011b4>4011b4:</a>48 83 ec 10          	sub    $0x10,%rsp</pre>
+<a name=asmline4011ba href=#asmline4011ba>4011ba:</a>8b 45 ec             	mov    -0x14(%rbp),%eax
+<a name=asmline4011bd href=#asmline4011bd>4011bd:</a>83 e8 01             	sub    $0x1,%eax
+<a name=asmline4011c0 href=#asmline4011c0>4011c0:</a>89 c7                	mov    %eax,%edi
+<a name=asmline4011c2 href=#asmline4011c2>4011c2:</a>e8 cd ff ff ff       	callq  <span class="nocode"><a href=#asmline401194>401194</a></span> <fib></pre>
           </div>
           <div class="src-block">
-              <span>sample2.c</span>
+              <span>fib.c</span>
               <pre class="prettyprint lang-c">
-<span class="nocode">9</span>. 
-<span class="nocode">10</span>. void pf() {</pre>
+<span class="nocode"><font color="grey"><span class="nocode">6</span>.     } else {
+</font></span><span class="nocode"><font color="grey"><span class="nocode">7</span>.         return fib(a-2) + fib(a-1);</font></span></pre>
           </div>
       </div>
         <div class="code-block">
           <div class="asm-block">
               <span>~</span>
               <pre class="prettyprint lang-c">
-<a name=asmline4011b8 href=#asmline4011b8>4011b8:</a>c7 45 fc 01 00 00 00 	movl   $0x1,-0x4(%rbp)</pre>
+<a name=asmline  href=#asmline >
+<a name=asmline4011c7 href=#asmline4011c7>4011c7:</a>01 d8                	add    %ebx,%eax</pre>
           </div>
           <div class="src-block">
-              <span>sample2.c</span>
+              <span>fib.c</span>
               <pre class="prettyprint lang-c">
-<span class="nocode">11</span>.    int a = 1;</pre>
+<span class="nocode"><font color="grey"><span class="nocode">6</span>.     } else {
+</font></span><span class="nocode"><font color="grey"><span class="nocode">7</span>.         return fib(a-2) + fib(a-1);</font></span></pre>
           </div>
       </div>
         <div class="code-block">
           <div class="asm-block">
               <span>~</span>
               <pre class="prettyprint lang-c">
-<a name=asmline4011bf href=#asmline4011bf>4011bf:</a>bf 2f 20 40 00       	mov    $0x40202f,%edi
-<a name=asmline4011c4 href=#asmline4011c4>4011c4:</a>b8 00 00 00 00       	mov    $0x0,%eax
-<a name=asmline4011c9 href=#asmline4011c9>4011c9:</a>e8 62 fe ff ff       	callq  <span class="nocode"><a href=#asmline401030>401030</a></span> <printf@plt></pre>
+<a name=asmline  href=#asmline >
+<a name=asmline4011c9 href=#asmline4011c9>4011c9:</a>48 83 c4 18          	add    $0x18,%rsp
+<a name=asmline4011cd href=#asmline4011cd>4011cd:</a>5b                   	pop    %rbx
+<a name=asmline4011ce href=#asmline4011ce>4011ce:</a>5d                   	pop    %rbp
+<a name=asmline4011cf href=#asmline4011cf>4011cf:</a>c3                   	retq   </pre>
           </div>
           <div class="src-block">
-              <span>sample2.c</span>
+              <span>fib.c</span>
               <pre class="prettyprint lang-c">
-<span class="nocode">12</span>.    printf("print func");</pre>
-          </div>
-      </div>
-        <div class="code-block">
-          <div class="asm-block">
-              <span>~</span>
-              <pre class="prettyprint lang-c">
-<a name=asmline4011ce href=#asmline4011ce>4011ce:</a>b8 00 00 00 00       	mov    $0x0,%eax
-<a name=asmline4011d3 href=#asmline4011d3>4011d3:</a>e8 b1 ff ff ff       	callq  <span class="nocode"><a href=#asmline401189>401189</a></span> <sfunc></pre>
-          </div>
-          <div class="src-block">
-              <span>sample2.c</span>
-              <pre class="prettyprint lang-c">
-<span class="nocode">13</span>.    sfunc();</pre>
-          </div>
-      </div>
-        <div class="code-block">
-          <div class="asm-block">
-              <span>~</span>
-              <pre class="prettyprint lang-c">
-<a name=asmline4011d8 href=#asmline4011d8>4011d8:</a>90                   	nop
-<a name=asmline4011d9 href=#asmline4011d9>4011d9:</a>c9                   	leaveq 
-<a name=asmline4011da href=#asmline4011da>4011da:</a>c3                   	retq   </pre>
-          </div>
-          <div class="src-block">
-              <span>sample2.c</span>
-              <pre class="prettyprint lang-c">
-<span class="nocode">14</span>. }</pre>
+<span class="nocode">8</span>.     }
+<span class="nocode">9</span>. }</pre>
           </div>
       </div>
     </body>
