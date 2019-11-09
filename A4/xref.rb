@@ -102,19 +102,29 @@ addr_map.each { |key, table|
     end
 }
 
+# Sort dwarf table
+
+addr_map_sorted = Hash.new
+
+addr_map.each { |key, table|
+    table_sorted = table.sort_by{ |line| line[1].to_i(10)}
+    
+    line_sorted = Array.new
+    table_sorted.each{ |line| line_sorted.push(line[1].to_i(10))}
+
+    addr_map_sorted[key] = line_sorted
+}
+
 # By assenbly file
 
 code_map_asm = Hash.new
 
 addr_map.each { |key, table|
-    
     for i in 0..table.length-2
         addr = table[i][0].to_i(16)
         code_map_asm[addr] = {}
     end
-
 }
-
 
 addr_map.each { |key, table|
 
@@ -124,11 +134,10 @@ addr_map.each { |key, table|
 
         line_end = table[i][1].to_i(10)
         line_start = 1
-        if i != 0
-            line_start = table[i-1][1].to_i(10)+1
-            
-            # if file_all[file_name][line_start][2]
 
+        curr_index = addr_map_sorted[key].index(line_end)
+        if curr_index != 0
+            line_start = addr_map_sorted[key][curr_index-1]+1
         end
 
         file_num = table[i][3].to_i(10)
