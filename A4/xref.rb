@@ -18,10 +18,10 @@ dwarf_line_reg = /^(?<first>debug_line\[[0-9a-fx]+\])|^(?<addr>0x[0-9a-f]+) +(?<
 # Get results from objdump and dwarfdump
 
 obj_raw, stdeerr, status = Open3.capture3("objdump -d " + exec_name)
-# File.open("objdumpd.txt", 'w') { |f| f.write(obj_raw) }
+File.open("objdumpd.txt", 'w') { |f| f.write(obj_raw) }
 
 dwarf_raw, stdeerr, status = Open3.capture3("llvm-dwarfdump --debug-line " + exec_name)
-# File.open("dwarfdump.txt", 'w') { |f| f.write(dwarf_raw) }
+File.open("dwarfdump.txt", 'w') { |f| f.write(dwarf_raw) }
 
 obj = obj_raw.scan(obj_reg)
 dwarf_file = dwarf_raw.scan(dwarf_file_reg)
@@ -120,6 +120,10 @@ code_map_asm = Hash.new
 addr_map.each { |key, table|
 
     for i in 0..table.length-1
+        if !table[i][6].include?("stmt")
+            next
+        end
+
         if table[i][6].include?("end_sequence")
             next
         end
