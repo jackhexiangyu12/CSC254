@@ -293,4 +293,4 @@ code_map_asm.each { |addr, content|
 }
 
 out = rhtml.result(cross_indexor.get_binding)
-File.open("index.html", 'w') { |f| f.write(out) }
+File.open("HTML/index.html", 'w') { |f| f.write(out) }
