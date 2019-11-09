@@ -11,7 +11,8 @@ exec_name = ARGV[0]
 
 # Set regex for objdump and dwarfdump
 
-obj_reg =   /^(?<first>[0-9a-f]+ <(?<name>\S+)>:)|^  (?<addr>[0-9a-f]+:\t*(?: *[0-9a-f]{2})+ *\t[a-z]+ *[a-zA-Z0-9$,\%_\-\(\)\# \*\<\>\.\:\@\+\/\\]*)/
+obj_func_reg = /^([0-9a-f]+) <(\S+)>:/
+obj_reg = /^(?<first>[0-9a-f]+ <(?<name>\S+)>:)|^  (?<addr>[0-9a-f]+:\t*(?: *[0-9a-f]{2})+ *\t[a-z]+ *[a-zA-Z0-9$,\%_\-\(\)\# \*\<\>\.\:\@\+\/\\]*)/
 dwarf_file_reg = /^(?<first>debug_line\[[0-9a-fx]+\])|^file_names\[ *(?<num>\d+)\]:\n +name: \"(?<name>.+\.[ch]{1})\"/
 dwarf_line_reg = /^(?<first>debug_line\[[0-9a-fx]+\])|^(?<addr>0x[0-9a-f]+) +(?<line>\d+) +(?<col>\d+) +(?<file>\d+) +(?<isa>\d+) +(?<dis>\d+) +(?<flags>.+)/
 
@@ -24,6 +25,7 @@ dwarf_raw, stdeerr, status = Open3.capture3("llvm-dwarfdump --debug-line " + exe
 File.open("dwarfdump.txt", 'w') { |f| f.write(dwarf_raw) }
 
 obj = obj_raw.scan(obj_reg)
+func = obj_raw.scan(obj_func_reg)
 dwarf_file = dwarf_raw.scan(dwarf_file_reg)
 dwarf_line = dwarf_raw.scan(dwarf_line_reg)
 
@@ -40,6 +42,14 @@ obj.each { |l|
         assembly_map[l[2].to_i(16)] = l[2..5]
     end
 }
+
+func_map = Hash.new
+
+func.each { |l|
+    func_map[l[1]] = l[0].to_i(16).to_s(16)
+}
+
+puts(func_map)
 
 # Extract file names in dwarf
 
@@ -149,11 +159,11 @@ addr_map.each { |key, table|
             asm_code = code_map_asm[addr_start]['asm']
             src_code = code_map_asm[addr_start]['src']
             if src_code[-1] != nil && src_code[-1][1] != nil
-                src_code[-1][1] = src_code[-1][1] + "\n"
+                # src_code[-1][1] = src_code[-1][1] + "\n"
             end
     
             if asm_code[-1] != nil && asm_code[-1][-1] != nil
-                asm_code[-1][-1] = asm_code[-1][-1] + "\n"
+                # asm_code[-1][-1] = asm_code[-1][-1] + "\n"
             end
         else
             asm_code = Array.new
@@ -192,11 +202,11 @@ addr_map.each { |key, table|
         end
 
         if src_code[-1] != nil && src_code[-1][1] != nil
-            src_code[-1][1] = src_code[-1][1].sub("\n", "")
+            # src_code[-1][1] = src_code[-1][1].sub("\n", "")
         end
 
         if asm_code[-1] != nil && asm_code[-1][-1] != nil
-            asm_code[-1][-1] = asm_code[-1][-1].sub("\n", "")
+            # asm_code[-1][-1] = asm_code[-1][-1].sub("\n", "")
         end
 
         content = {
@@ -214,9 +224,10 @@ addr_map.each { |key, table|
 # Build template data class
 
 class Product
-    def initialize(executable)
+    def initialize(executable, func_map)
         @exec_name = executable
         @code_blocks = [ ]
+        @func_map = func_map
     end
 
     def add_code_block(asm, src, file_name)
@@ -269,6 +280,7 @@ template = %{
     </head>
     <body>
     <h2>xref for binary: <%= @exec_name %> </h2>
+    <a href=<%= "#asmline" + @func_map["main"] %>>main</a>
     <% @code_blocks.each do |code_block| %>
         <div class="code-block">
             <div class="asm-block">
@@ -292,7 +304,7 @@ template = %{
 }.gsub(/^  /, '')
 
 rhtml = ERB.new(template, 0, '>')
-cross_indexor = Product.new(exec_name)
+cross_indexor = Product.new(exec_name, func_map)
 
 code_map_asm.each { |addr, content|
     cross_indexor.add_code_block(content['asm'], content['src'], content['file_name'])
