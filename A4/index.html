@@ -39,18 +39,6 @@
               <pre class="prettyprint lang-c">
 <a name=asmline  href=#asmline >
 <a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
 <a name=asmline400580 href=#asmline400580>400580:</a>c3                   	retq   
 <a name=asmline400581 href=#asmline400581>400581:</a>0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
 <a name=asmline400586 href=#asmline400586>400586:</a>66 2e 0f 1f 84 00 00 	nopw   %cs:0x0(%rax,%rax,1)</pre>
@@ -58,18 +46,6 @@
           <div class="src-block">
               <span>foo.c</span>
               <pre class="prettyprint lang-c">
-<span class="nocode">0</span>. #include "blah.h"
-<span class="nocode">1</span>. 
-<span class="nocode">2</span>. static int foo() {
-<span class="nocode">3</span>.     // Notice how there's a 4:7 ratio of asm to source lines here - this ratio
-<span class="nocode">4</span>.     // can be aribtrary
-<span class="nocode">5</span>.     int x = 0;
-<span class="nocode">6</span>.     for (int i = 0; i < 100; ++i) {
-<span class="nocode">7</span>.         x += i;
-<span class="nocode">8</span>.     }
-<span class="nocode">9</span>.     printf("%d\n", x);
-<span class="nocode">10</span>.     return x;
-<span class="nocode">11</span>. }
 <span class="nocode">12</span>. 
 <span class="nocode">13</span>. static void NO_INLINE bar() {
 <span class="nocode">14</span>.     // This is just to make sure this function doesn't get optimized out
@@ -81,21 +57,22 @@
           <div class="asm-block">
               <span>~</span>
               <pre class="prettyprint lang-c">
+<a name=asmline  href=#asmline >
+<a name=asmline  href=#asmline >
 <a name=asmline400590 href=#asmline400590>400590:</a>48 83 ec 08          	sub    $0x8,%rsp</pre>
           </div>
           <div class="src-block">
               <span>foo.c</span>
               <pre class="prettyprint lang-c">
-</pre>
+<span class="nocode">0</span>. #include "blah.h"
+<span class="nocode">1</span>. 
+<span class="nocode">2</span>. static int foo() {</pre>
           </div>
       </div>
         <div class="code-block">
           <div class="asm-block">
               <span>~</span>
               <pre class="prettyprint lang-c">
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
 <a name=asmline  href=#asmline >
 <a name=asmline  href=#asmline >
 <a name=asmline  href=#asmline >
@@ -107,13 +84,10 @@
           <div class="src-block">
               <span>foo.c</span>
               <pre class="prettyprint lang-c">
-<span class="nocode"><font color="grey"><span class="nocode">3</span>.     // Notice how there's a 4:7 ratio of asm to source lines here - this ratio
-</font></span><span class="nocode"><font color="grey"><span class="nocode">4</span>.     // can be aribtrary
-</font></span><span class="nocode"><font color="grey"><span class="nocode">5</span>.     int x = 0;
-</font></span><span class="nocode"><font color="grey"><span class="nocode">6</span>.     for (int i = 0; i < 100; ++i) {
-</font></span><span class="nocode"><font color="grey"><span class="nocode">7</span>.         x += i;
-</font></span><span class="nocode"><font color="grey"><span class="nocode">8</span>.     }
-</font></span><span class="nocode"><font color="grey"><span class="nocode">9</span>.     printf("%d\n", x);</font></span></pre>
+<span class="nocode">6</span>.     for (int i = 0; i < 100; ++i) {
+<span class="nocode">7</span>.         x += i;
+<span class="nocode">8</span>.     }
+<span class="nocode">9</span>.     printf("%d\n", x);</pre>
           </div>
       </div>
         <div class="code-block">
@@ -129,8 +103,8 @@
           <div class="src-block">
               <span>foo.c</span>
               <pre class="prettyprint lang-c">
-<span class="nocode"><font color="grey"><span class="nocode">10</span>.     return x;
-</font></span><span class="nocode"><font color="grey"><span class="nocode">11</span>. }</font></span></pre>
+<span class="nocode">10</span>.     return x;
+<span class="nocode">11</span>. }</pre>
           </div>
       </div>
         <div class="code-block">
@@ -138,22 +112,12 @@
               <span>~</span>
               <pre class="prettyprint lang-c">
 <a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
 <a name=asmline4005b0 href=#asmline4005b0>4005b0:</a>48 83 ec 18          	sub    $0x18,%rsp</pre>
           </div>
           <div class="src-block">
               <span>foo.c</span>
               <pre class="prettyprint lang-c">
-<span class="nocode"><font color="grey"><span class="nocode">12</span>. 
-</font></span><span class="nocode"><font color="grey"><span class="nocode">13</span>. static void NO_INLINE bar() {
-</font></span><span class="nocode"><font color="grey"><span class="nocode">14</span>.     // This is just to make sure this function doesn't get optimized out
-</font></span><span class="nocode"><font color="grey"><span class="nocode">15</span>.     asm("");
-</font></span><span class="nocode"><font color="grey"><span class="nocode">16</span>. }
-</font></span><span class="nocode">17</span>. 
+<span class="nocode">17</span>. 
 <span class="nocode">18</span>. static void NO_INLINE complicated_func() {</pre>
           </div>
       </div>
@@ -222,12 +186,18 @@
           <div class="asm-block">
               <span>~</span>
               <pre class="prettyprint lang-c">
+<a name=asmline  href=#asmline >
+<a name=asmline  href=#asmline >
+<a name=asmline  href=#asmline >
 <a name=asmline4005d9 href=#asmline4005d9>4005d9:</a>89 44 24 0c          	mov    %eax,0xc(%rsp)</pre>
           </div>
           <div class="src-block">
               <span>foo.c</span>
               <pre class="prettyprint lang-c">
-</pre>
+<span class="nocode"><font color="grey"><span class="nocode">22</span>. 
+</font></span><span class="nocode"><font color="grey"><span class="nocode">23</span>.     do {
+</font></span><span class="nocode"><font color="grey"><span class="nocode">24</span>.         for (int i = 0; i < 2; ++i) {
+</font></span><span class="nocode"><font color="grey"><span class="nocode">25</span>.             y += i;</font></span></pre>
           </div>
       </div>
         <div class="code-block">
@@ -248,12 +218,18 @@
           <div class="asm-block">
               <span>~</span>
               <pre class="prettyprint lang-c">
+<a name=asmline  href=#asmline >
+<a name=asmline  href=#asmline >
+<a name=asmline  href=#asmline >
 <a name=asmline4005e8 href=#asmline4005e8>4005e8:</a>8b 44 24 0c          	mov    0xc(%rsp),%eax</pre>
           </div>
           <div class="src-block">
               <span>foo.c</span>
               <pre class="prettyprint lang-c">
-</pre>
+<span class="nocode"><font color="grey"><span class="nocode">22</span>. 
+</font></span><span class="nocode"><font color="grey"><span class="nocode">23</span>.     do {
+</font></span><span class="nocode"><font color="grey"><span class="nocode">24</span>.         for (int i = 0; i < 2; ++i) {
+</font></span><span class="nocode"><font color="grey"><span class="nocode">25</span>.             y += i;</font></span></pre>
           </div>
       </div>
         <div class="code-block">
@@ -272,13 +248,19 @@
           <div class="asm-block">
               <span>~</span>
               <pre class="prettyprint lang-c">
+<a name=asmline  href=#asmline >
+<a name=asmline  href=#asmline >
+<a name=asmline  href=#asmline >
 <a name=asmline4005f1 href=#asmline4005f1>4005f1:</a>83 c0 01             	add    $0x1,%eax
 <a name=asmline4005f4 href=#asmline4005f4>4005f4:</a>89 44 24 0c          	mov    %eax,0xc(%rsp)</pre>
           </div>
           <div class="src-block">
               <span>foo.c</span>
               <pre class="prettyprint lang-c">
-</pre>
+<span class="nocode"><font color="grey"><span class="nocode">22</span>. 
+</font></span><span class="nocode"><font color="grey"><span class="nocode">23</span>.     do {
+</font></span><span class="nocode"><font color="grey"><span class="nocode">24</span>.         for (int i = 0; i < 2; ++i) {
+</font></span><span class="nocode"><font color="grey"><span class="nocode">25</span>.             y += i;</font></span></pre>
           </div>
       </div>
         <div class="code-block">
@@ -350,7 +332,7 @@
           <div class="src-block">
               <span>foo.c</span>
               <pre class="prettyprint lang-c">
-</pre>
+<span class="nocode"><font color="grey"><span class="nocode">31</span>. }</font></span></pre>
           </div>
       </div>
         <div class="code-block">
@@ -399,6 +381,8 @@
           <div class="asm-block">
               <span>~</span>
               <pre class="prettyprint lang-c">
+<a name=asmline  href=#asmline >
+<a name=asmline  href=#asmline >
 <a name=asmline400482 href=#asmline400482>400482:</a>48 8d 74 24 0c       	lea    0xc(%rsp),%rsi
 <a name=asmline400487 href=#asmline400487>400487:</a>bf e4 06 40 00       	mov    $0x4006e4,%edi
 <a name=asmline40048c href=#asmline40048c>40048c:</a>31 c0                	xor    %eax,%eax
@@ -407,44 +391,15 @@
           <div class="src-block">
               <span>blah.h</span>
               <pre class="prettyprint lang-c">
-</pre>
+<span class="nocode">3</span>. inline int blah() {
+<span class="nocode">4</span>.     int x;
+<span class="nocode">5</span>.     scanf("%d", &x);</pre>
           </div>
       </div>
         <div class="code-block">
           <div class="asm-block">
               <span>~</span>
               <pre class="prettyprint lang-c">
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
-<a name=asmline  href=#asmline >
 <a name=asmline  href=#asmline >
 <a name=asmline  href=#asmline >
 <a name=asmline  href=#asmline >
@@ -455,38 +410,7 @@
           <div class="src-block">
               <span>foo.c</span>
               <pre class="prettyprint lang-c">
-<span class="nocode"><font color="grey"><span class="nocode">6</span>.     for (int i = 0; i < 100; ++i) {
-</font></span><span class="nocode"><font color="grey"><span class="nocode">7</span>.         x += i;
-</font></span><span class="nocode"><font color="grey"><span class="nocode">8</span>.     }
-</font></span><span class="nocode"><font color="grey"><span class="nocode">9</span>.     printf("%d\n", x);
-</font></span><span class="nocode"><font color="grey"><span class="nocode">10</span>.     return x;
-</font></span><span class="nocode"><font color="grey"><span class="nocode">11</span>. }
-</font></span><span class="nocode"><font color="grey"><span class="nocode">12</span>. 
-</font></span><span class="nocode"><font color="grey"><span class="nocode">13</span>. static void NO_INLINE bar() {
-</font></span><span class="nocode"><font color="grey"><span class="nocode">14</span>.     // This is just to make sure this function doesn't get optimized out
-</font></span><span class="nocode"><font color="grey"><span class="nocode">15</span>.     asm("");
-</font></span><span class="nocode"><font color="grey"><span class="nocode">16</span>. }
-</font></span><span class="nocode"><font color="grey"><span class="nocode">17</span>. 
-</font></span><span class="nocode"><font color="grey"><span class="nocode">18</span>. static void NO_INLINE complicated_func() {
-</font></span><span class="nocode"><font color="grey"><span class="nocode">19</span>.     int x;
-</font></span><span class="nocode"><font color="grey"><span class="nocode">20</span>.     scanf("%d\n", &x);
-</font></span><span class="nocode"><font color="grey"><span class="nocode">21</span>.     volatile int y = x;
-</font></span><span class="nocode"><font color="grey"><span class="nocode">22</span>. 
-</font></span><span class="nocode"><font color="grey"><span class="nocode">23</span>.     do {
-</font></span><span class="nocode"><font color="grey"><span class="nocode">24</span>.         for (int i = 0; i < 2; ++i) {
-</font></span><span class="nocode"><font color="grey"><span class="nocode">25</span>.             y += i;
-</font></span><span class="nocode"><font color="grey"><span class="nocode">26</span>.             printf("%d\n", y);
-</font></span><span class="nocode"><font color="grey"><span class="nocode">27</span>.         }
-</font></span><span class="nocode"><font color="grey"><span class="nocode">28</span>.     } while (y == 7);
-</font></span><span class="nocode"><font color="grey"><span class="nocode">29</span>. 
-</font></span><span class="nocode"><font color="grey"><span class="nocode">30</span>.     printf("%d\n", y);
-</font></span><span class="nocode"><font color="grey"><span class="nocode">31</span>. }
-</font></span><span class="nocode"><font color="grey"><span class="nocode">32</span>. 
-</font></span><span class="nocode"><font color="grey"><span class="nocode">33</span>. int main() {
-</font></span><span class="nocode"><font color="grey"><span class="nocode">34</span>.     // which bar?
-</font></span><span class="nocode"><font color="grey"><span class="nocode">35</span>.     bar();
-</font></span><span class="nocode"><font color="grey"><span class="nocode">36</span>.     complicated_func();
-</font></span><span class="nocode">37</span>.     // Notice that the source before this comes from a different file
+<span class="nocode">37</span>.     // Notice that the source before this comes from a different file
 <span class="nocode">38</span>.     blah();
 <span class="nocode">39</span>.     return 0;
 <span class="nocode">40</span>. }</pre>
