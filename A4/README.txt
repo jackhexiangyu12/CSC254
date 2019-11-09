@@ -12,11 +12,14 @@ How to run
     For example, if the executable file is "a.out", then run "ruby xref.rb a.out"
     And the result is stored as "index.html"
 
-Implementations
+Features
 
-    We implemented all the requirements. 
+    All requirements are implemented. 
+
+    Executables compiled with "-O0" or "-O3" are both supported. 
+    Location-specific link to the beginning of the code for "main" is displayed on top of the html page called "main". 
 
 Extra credis
 
-    “Syntax-color” such that different part of the code on the page are visibly distinguished. 
+    “Syntax-color” such that different part of the code on the page are visibly distinguished is implemented. 
 
