@@ -9,8 +9,6 @@ end
 
 exec_name = ARGV[0]
 
-# By assembly or by source
-
 # Set regex for objdump and dwarfdump
 
 obj_reg =   /^(?<first>[0-9a-f]+ <(?<name>\S+)>:)|^  (?<addr>[0-9a-f]+:\t*(?: *[0-9a-f]{2})+ *\t[a-z]+ *[a-zA-Z0-9$,\%_\-\(\)\# \*\<\>\.\:\@\+\/\\]*)/
@@ -95,14 +93,14 @@ addr_map.each { |key, table|
             file_content = Array.new
             file_content.push("")
             File.foreach(file_name).with_index { |line, line_num|
-                file_content.push(["<span class=\"nocode\">"+line_num.to_s+"</span>", line, false])
+                file_content.push(["<span class=\"nocode\">"+(line_num+1).to_s+"</span>", line, false])
             }
             file_all[file_name] = file_content
         end
     end
 }
 
-# Sort dwarf table
+# Sort line numbers in each dwarf table and store
 
 addr_map_sorted = Hash.new
 
@@ -120,30 +118,30 @@ addr_map.each { |key, table|
 code_map_asm = Hash.new
 
 addr_map.each { |key, table|
-    for i in 0..table.length-2
-        addr = table[i][0].to_i(16)
-        code_map_asm[addr] = {}
-    end
-}
 
-addr_map.each { |key, table|
+    for i in 0..table.length-1
+        if table[i][6].include?("end_sequence")
+            next
+        end
 
-    for i in 0..table.length-2
+        # Range in assembly address
         addr_start = table[i][0].to_i(16)
         addr_end = table[i+1][0].to_i(16) - 1
 
+        # Range in source line number
         line_end = table[i][1].to_i(10)
         line_start = 1
-
         curr_index = addr_map_sorted[key].index(line_end)
         if curr_index != 0
             line_start = addr_map_sorted[key][curr_index-1]+1
         end
 
+        # Get file name
         file_num = table[i][3].to_i(10)
         file_name = file_map[key][file_num]
 
-        if code_map_asm[addr_start].key?('asm')
+        # Add to hash map
+        if code_map_asm[addr_start]
             asm_code = code_map_asm[addr_start]['asm']
             src_code = code_map_asm[addr_start]['src']
             if src_code[-1] != nil && src_code[-1][1] != nil
@@ -157,7 +155,8 @@ addr_map.each { |key, table|
             asm_code = Array.new
             src_code = Array.new
         end
-        
+
+        # Append new line if needed
         offset = line_end - line_start
         if offset > 0
             for j in line_start..line_end - 1
@@ -165,6 +164,7 @@ addr_map.each { |key, table|
             end
         end
 
+        # Add href
         for j in addr_start..addr_end
             if assembly_map[j] != nil
                 asm_tmp = assembly_map[j][0]
@@ -178,8 +178,8 @@ addr_map.each { |key, table|
             end
         end
 
+        # Check if current src line is used or not
         for j in line_start..line_end
-
             src_code << [file_all[file_name][j][0], file_all[file_name][j][1], file_all[file_name][j][2]]
             
             if !file_all[file_name][j][2]
@@ -204,39 +204,6 @@ addr_map.each { |key, table|
         code_map_asm[addr_start] = content
     end
 }
-
-# Generate code block content
-
-# puts(file_all)
-# puts("=" * 50)
-# puts(assembly_map)
-# puts("=" * 50)
-# puts(addr_map)
-# puts("=" * 50)
-# puts(file_map)
-# puts("=" * 50)
-# puts(code_map_asm)
-
-# By source file
-
-# code_map_src = Hash.new
-
-# addr_map.each { |key, table|
-#     for i in 0..table.length-2
-#         addr_1 = table[i][0].to_i(16)
-#         addr_2 = table[i+1][0].to_i(16)
-
-#         assembly_list = Array.new
-#         for j in addr_1..addr_2-1
-#             assembly_list.push(assembly_map[j])
-#         end
-
-#         file_num = table[i][3]
-#         file_name = file_map[key][file_num.to_i]
-
-#     end
-# }
-
 
 # Generate HTML
 
