@@ -49,8 +49,6 @@ func.each { |l|
     func_map[l[1]] = l[0].to_i(16).to_s(16)
 }
 
-puts(func_map)
-
 # Extract file names in dwarf
 
 file_map = Hash.new
