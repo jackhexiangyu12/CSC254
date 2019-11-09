@@ -1,15 +1,18 @@
-# xref outputs
-outputs
+# xref output
+*.html
+
+# C exec
+*.out
 
 # C files
-# *.c
-# *.h
+*.c
+*.h
 
 # Prerequisites
 *.d
 
 # Object files
-# *.o
+*.o
 *.ko
 *.obj
 *.elf
