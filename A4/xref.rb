@@ -173,6 +173,15 @@ addr_map.each { |key, table|
         for j in addr_start..addr_end
             if assembly_map[j] != nil
                 asm_tmp = assembly_map[j][0]
+
+                if asm_tmp.split("#").length > 1
+                    print(asm_tmp.split("#"))
+                    puts()                    
+                    asm_tmp = asm_tmp.split("#")[0]
+                    puts(asm_tmp)
+                end
+                
+
                 asm_tmp_split = asm_tmp.split(" ")
                 if asm_tmp_split[-1].include?("<")
                     asm_tmp_called_addr = asm_tmp_split[-2]
