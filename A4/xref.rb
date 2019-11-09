@@ -156,13 +156,6 @@ addr_map.each { |key, table|
         if code_map_asm[addr_start]
             asm_code = code_map_asm[addr_start]['asm']
             src_code = code_map_asm[addr_start]['src']
-            if src_code[-1] != nil && src_code[-1][1] != nil
-                # src_code[-1][1] = src_code[-1][1] + "\n"
-            end
-    
-            if asm_code[-1] != nil && asm_code[-1][-1] != nil
-                # asm_code[-1][-1] = asm_code[-1][-1] + "\n"
-            end
         else
             asm_code = Array.new
             src_code = Array.new
@@ -199,20 +192,11 @@ addr_map.each { |key, table|
             end
         end
 
-        if src_code[-1] != nil && src_code[-1][1] != nil
-            # src_code[-1][1] = src_code[-1][1].sub("\n", "")
-        end
-
-        if asm_code[-1] != nil && asm_code[-1][-1] != nil
-            # asm_code[-1][-1] = asm_code[-1][-1].sub("\n", "")
-        end
-
         content = {
             "asm" => asm_code.compact,
             "file_name" => file_name,
             "src" => src_code.compact
         }
-
         code_map_asm[addr_start] = content
     end
 }
@@ -292,7 +276,7 @@ template = %{
                 <span><%= code_block['file_name'] %></span>
                 <pre class="prettyprint lang-c">
 <% code_block['src'].each do |src| %>
-<% if !src[2] %><%= src[0]+". "+src[1] %><% else %><span class="nocode"><font color="grey"><%= src[0] + ". " + src[1] %></font></span><% end %>
+<% if !src[2] %><%= src[0]+". "+src[1] %><% else %><span class="nocode"><font color="grey"><%= src[0] + ". " + src[1].sub("\n", "")%></font></span>\n<% end %>
 <% end %></pre>
             </div>
         </div>
