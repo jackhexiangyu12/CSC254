@@ -2,17 +2,17 @@
 *.html
 
 # C exec
-# *.out
+*.out
 
 # C files
-# *.c
-# *.h
+*.c
+*.h
 
 # Prerequisites
 *.d
 
 # Object files
-# *.o
+*.o
 *.ko
 *.obj
 *.elf
