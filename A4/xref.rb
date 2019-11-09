@@ -174,11 +174,8 @@ addr_map.each { |key, table|
             if assembly_map[j] != nil
                 asm_tmp = assembly_map[j][0]
 
-                if asm_tmp.split("#").length > 1
-                    print(asm_tmp.split("#"))
-                    puts()                    
+                if asm_tmp.split("#").length > 1                   
                     asm_tmp = asm_tmp.split("#")[0]
-                    puts(asm_tmp)
                 end
                 
 
