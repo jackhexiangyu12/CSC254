@@ -141,3 +141,4 @@ Node S() {
 Synthesized Attribute 
 Inherited Attribute
 
+Exercise for concurrency: 13.1, 2, 5, 6, 9, 14
