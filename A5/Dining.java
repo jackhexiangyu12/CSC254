@@ -70,6 +70,8 @@ class Fork {
     private int x;
     private int y;
 
+    private boolean inuse;
+
     // Constructor.
     // cx and cy indicate coordinates of center.
     // Note that fillOval method expects coordinates of upper left corner
@@ -81,6 +83,8 @@ class Fork {
         orig_y = cy;
         x = cx;
         y = cy;
+
+        inuse = false;
     }
 
     public void reset() {
@@ -92,15 +96,23 @@ class Fork {
 
     // arguments are coordinates of acquiring philosopher's center
     //
-    public void acquire(int px, int py) {
+    public synchronized void acquire(int px, int py) {
+        inuse = true;
+
         clear();
         x = (orig_x + px)/2;
         y = (orig_y + py)/2;
         t.repaint();
     }
 
-    public void release() {
+    public synchronized void release() {
+        inuse = false;
+
         reset();
+    }
+
+    public boolean available() {
+        return !inuse;
     }
 
     // render self
@@ -138,19 +150,23 @@ class Philosopher extends Thread {
     private Random prn;
     private Color color;
 
+    private int n;
+    private static final double WAIT_TIME = 1.0;
+
     // Constructor.
     // cx and cy indicate coordinates of center
     // Note that fillOval method expects coordinates of upper left corner
     // of bounding box instead.
     //
     public Philosopher(Table T, int cx, int cy,
-                       Fork lf, Fork rf, Coordinator C) {
+                       Fork lf, Fork rf, Coordinator C, int N) {
         t = T;
         x = cx;
         y = cy;
         left_fork = lf;
         right_fork = rf;
         c = C;
+        n = N;
         prn = new Random();
         color = THINK_COLOR;
     }
@@ -207,21 +223,39 @@ class Philosopher extends Thread {
     }
 
     private void think() throws ResetException {
+        System.out.println("Philosopher "+Integer.toString(n)+" thinking");
+
         color = THINK_COLOR;
         t.repaint();
         delay(THINK_TIME);
     }
 
     private void hunger() throws ResetException {
+        System.out.println("Philosopher "+Integer.toString(n)+" waiting");
+
         color = WAIT_COLOR;
         t.repaint();
         delay(FUMBLE_TIME);
-        left_fork.acquire(x, y);
-        yield();    // you aren't allowed to remove this
-        right_fork.acquire(x, y);
+
+        for (;;) {
+            if (left_fork.available() && right_fork.available()) {
+                left_fork.acquire(x, y);
+                yield();    // you aren't allowed to remove this
+                right_fork.acquire(x, y);
+                return;
+            } else {
+                delay(WAIT_TIME);
+            }
+        }
+
+        // left_fork.acquire(x, y);
+        // yield();    // you aren't allowed to remove this
+        // right_fork.acquire(x, y);
     }
 
     private void eat() throws ResetException {
+        System.out.println("Philosopher "+Integer.toString(n)+" eating");
+
         color = EAT_COLOR;
         t.repaint();
         delay(EAT_TIME);
@@ -298,13 +332,25 @@ class Table extends JPanel {
         }
         for (int i = 0; i < NUM_PHILS; i++) {
             double angle = Math.PI/2 + 2*Math.PI/NUM_PHILS*i;
-            philosophers[i] = new Philosopher(this,
-                (int) (CANVAS_SIZE/2.0 + CANVAS_SIZE/3.0 * Math.cos(angle)),
-                (int) (CANVAS_SIZE/2.0 - CANVAS_SIZE/3.0 * Math.sin(angle)),
-                forks[i],
-                forks[(i+1) % NUM_PHILS],
-                c);
-            philosophers[i].start();
+            if (i != NUM_PHILS - 1) { 
+                philosophers[i] = new Philosopher(this,
+                    (int) (CANVAS_SIZE/2.0 + CANVAS_SIZE/3.0 * Math.cos(angle)),
+                    (int) (CANVAS_SIZE/2.0 - CANVAS_SIZE/3.0 * Math.sin(angle)),
+                    forks[i],
+                    forks[(i+1) % NUM_PHILS],
+                    c,
+                    i);
+                philosophers[i].start();
+            } else {
+                philosophers[i] = new Philosopher(this,
+                    (int) (CANVAS_SIZE/2.0 + CANVAS_SIZE/3.0 * Math.cos(angle)),
+                    (int) (CANVAS_SIZE/2.0 - CANVAS_SIZE/3.0 * Math.sin(angle)),
+                    forks[(i+1) % NUM_PHILS],
+                    forks[i],
+                    c,
+                    i);
+                philosophers[i].start();
+            }
         }
     }
 }
