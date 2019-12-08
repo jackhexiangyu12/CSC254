@@ -227,13 +227,12 @@ class hashed_simple_set : public virtual simple_set<T> {
         // replace this line:
         // (void) item;  return false;
         int origidx, idx = F()(item) % size;
-        if (data[idx] == item && occupied[idx]) return true;
-        do {
+        while (data[idx] != item || !occupied[idx]) {
             idx++;
             if (idx == origidx) return false;
             if (idx == size) idx = 0;
-        } while (data[idx] != item || !occupied[idx]);
-        return false;
+        }
+        return true;
     }
 };
 
