@@ -25,11 +25,13 @@ class comp {
   public:
     bool precedes(const T& a, const T& b) const {
         // replace this line:
-        (void) a;  (void) b;  return true;
+        // (void) a;  (void) b;  return true;
+        return a < b;
     }
     bool equals(const T& a, const T& b) const {
         // replace this line:
-        (void) a;  (void) b;  return true;
+        // (void) a;  (void) b;  return true;
+        return a == b;
     }
 };
 
@@ -92,26 +94,44 @@ template<typename T>
 class carray_simple_set : public virtual simple_set<T> {
     // 'virtual' on simple_set ensures single copy if multiply inherited
     // You'll need some data members here.
+  private:
+    T low;
+    T high;
+    bool* data;
+    out_of_bounds err;
   public:
     // fill in these methods:
     carray_simple_set(const T l, const T h) {   // constructor
         // replace this line:
-        (void) l;  (void) h;
+        // (void) l;  (void) h;
+        if (l > h) throw err;
+        low = l;
+        high = h;
+        data = new bool[high-low];
     }
     virtual ~carray_simple_set() {              // destructor
         // your code here
+        delete [] data;
     }
     virtual carray_simple_set<T>& operator+=(const T item) {
         // replace this line:
-        (void) item;  return *this;
+        // (void) item;  return *this;
+        if ((item < low) || (item >= high)) throw err;
+        data[(int)item - (int)low] = true;
+        return *this;
     }
     virtual carray_simple_set<T>& operator-=(const T item) {
         // replace this line:
-        (void) item;  return *this;
+        // (void) item;  return *this;
+        if ((item < low) || (item >= high)) throw err;
+        data[(int)item - (int)low] = false;
+        return *this;
     }
     virtual bool contains(const T& item) const {
         // replace this line:
-        (void) item;  return true;
+        // (void) item;  return true;
+        if ((item < low) || (item >= high)) return false;
+        return data[(int)item - (int)low];
     }
 };
 
@@ -143,23 +163,77 @@ class hashed_simple_set : public virtual simple_set<T> {
     // number >= n, use F(e) % p as your hash function, and rehash
     // with kF(e) % p after the kth collision.  (But make sure that
     // F(e) is never 0.)
+  private:
+    // int p;
+    int size;
+    T* data;
+    bool* occupied;
+    overflow err;
+
+    // int isPrime(int n) {
+    //     if (n == 1) return 0;
+    //     if (n == 2) return 1;
+    //     for (int i = 2; i <= (int)floor(sqrt(n)); i++) {
+    //         if (n % 1 == 0) return 0;
+    //     }
+    //     return 1;
+    // }
+
+    // int getPrime(int n) {
+    //     int i = n;
+    //     while (!isPrime(i)) i++;
+    //     return i;
+    // }
   public:
     hashed_simple_set(const int n) {    // constructor
         // replace this line:
-        (void) n;
+        // (void) n;
+        // p = getPrime(n);
+        size = n;
+        data = new T[size];
+        occupied  =new bool[size];
     }
-    virtual ~hashed_simple_set() { }    // destructor
+    virtual ~hashed_simple_set() {      // destructor
+        delete [] data;
+        delete [] occupied;
+    }
     virtual hashed_simple_set<T, F>& operator+=(const T item) {
         // replace this line:
-        (void) item;  return *this;
+        // (void) item;  return *this;
+        int origidx, idx = F()(item) % size;
+        while (occupied[idx]) {
+            if (data[idx] == item) return *this;
+            idx++;
+            if (idx == origidx) throw err;
+            if (idx == size) idx = 0;
+        }
+        data[idx] = item;
+        occipied[idx] = true;
+        return *this;
     }
     virtual hashed_simple_set<T, F>& operator-=(const T item) {
         // replace this line:
-        (void) item;  return *this;
+        // (void) item;  return *this;
+        int origidx, idx = F()(item) % size;
+        while (occupied[idx]) {
+            if (data[idx] == item) occupied[idx] = false;
+            idx++;
+            if (idx == origidx) return *this;
+            if (idx == size) idx = 0;
+        }
+        return *this;
     }
     virtual bool contains(const T& item) const {
         // replace this line:
-        (void) item;  return false;
+        // (void) item;  return false;
+        int origidx, idx = F()(item) % size;
+        if (data[idx] == item && occupied[idx]) return true;
+        do {
+            idx++;
+            if (idx == origidx) return false;
+            if (idx == size) idx = 0;
+        } while (data[idx] != item || !occupied[idx]);
+        return false;
     }
 };
 
