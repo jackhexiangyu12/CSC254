@@ -178,7 +178,6 @@ class hashed_simple_set : public virtual simple_set<T> {
     //     }
     //     return 1;
     // }
-
     // int getPrime(int n) {
     //     int i = n;
     //     while (!isPrime(i)) i++;
@@ -248,9 +247,74 @@ class bin_search_simple_set : public virtual simple_set<T> {
     // 'virtual' on simple_set ensures single copy if multiply inherited
     // You'll need some data members here.
   private:
-    
+    int maxsize;
+    int currsize;
+    T* data;
+    C compr;
+    overflow err;
+
+    bool bin_search(int lower, int upper, cost T&item) cost {
+        if (lower >= upper) return false;
+        int idx = (upper - lower) / 2 + lower;
+        if (compr.equals(data[idx], item)) return true;
+        if (compr.precedes(item, data[idx])) {
+            if (idx == upper) return false;
+            return bin_search(lower, idx, item);
+        }
+        if (compr.precedes(data[idx], item)) {
+            if (idx == lower) return false;
+            return bin_search(idx, upper, item);
+        }
+        return false;
+    }
   public:
     // and some methods
+    bin_search_simple_set(int n) {
+        maxsize = n;
+        currsize = 0;
+        data = new T[maxsize];
+    }
+    virtual ~bin_search_simple_set() {
+        delete [] data;
+    }
+    virtual bin_search_simple_set<T, C>& operator+=(const T item) {
+        if (currsize > maxsize) throw err;
+        if (compr.precedes(data[currsize-1], item)) {
+            data[currsize] = item;
+            currsize++;
+        } else {
+            for (int i = 0; i < currsize; i++) {
+                if (compr.equals(data[i], item)) break;
+                if (compr.precedes(item, data[i])) {
+                    T thisdata = item;
+                    for (int j = i; j < currsize+1; j++) {
+                        T currdata = data[i];
+                        data[i] = thisdata;
+                        thisdata = currdata;
+                    }
+                    currsize++;
+                    break;
+                }
+            }
+        }
+        return *this;
+    }
+    virtual bin_search_simple_set<T, C>& operator-=(const T item) {
+        if (currsize == 0) return *this;
+        for (int i = 0; i < currsize; i++) {
+            if (compr.equals(data[i], item)) {
+                for (int j = i; j < currsize; j++) {
+                    data[j] = data[j+1];
+                }
+                currsize--;
+                break;
+            }
+        }
+        return *this;
+    }
+    virtual bool contains(const T& item) const {
+        return bin_search(0, currsize, item);
+    }
 };
 
 //===============================================================
