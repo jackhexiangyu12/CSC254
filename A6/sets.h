@@ -247,6 +247,8 @@ template<typename T, typename C = comp<T>>
 class bin_search_simple_set : public virtual simple_set<T> {
     // 'virtual' on simple_set ensures single copy if multiply inherited
     // You'll need some data members here.
+  private:
+    
   public:
     // and some methods
 };
