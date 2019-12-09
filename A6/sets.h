@@ -442,14 +442,24 @@ class std_range_set : public virtual range_set<T, C>,
 //---------------------------------------------------------------
 
 // insert an appropriate carray_range_set declaration here
+template<typename T, typename C = comp<T>, typename I = increment<T>>
+class carray_range_set : public virtual range_set<T, C>, 
+                         public carray_simple_set<T> {
+private:
+
+public:
+
+};
 
 //---------------------------------------------------------------
 
 // insert an appropriate hashed_range_set declaration here
 
+
 //---------------------------------------------------------------
 
 // insert an appropriate bin_search_range_set declaration here
+
 
 //===============================================================
 
