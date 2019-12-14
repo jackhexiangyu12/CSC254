@@ -38,20 +38,16 @@ template<>
 class comp <char*>{
   public:
     bool precedes(char* a, char* b) const {
-        while (*a != '\0') {
-            if(*a != *b) {
-                return (*a - *b)<0;
-            }
+        while (*a != '\0' || *b != '\0') {
+            if(*a != *b) return (*a - *b)<0;
             a++;
             b++;
         }
         return false;
     }
     bool equals(char* a, char* b) const {
-        while (*a != '\0') {
-            if(*a != *b) {
-                return false;
-            }
+        while (*a != '\0' || *b != '\0') {
+            if(*a != *b) return false;
             a++;
             b++;
         }

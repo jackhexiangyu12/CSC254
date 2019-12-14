@@ -108,7 +108,7 @@ int main() {
 
     bin_search_range_set<char*> s7(10);
     s7 += range<char*>("apple", true, "orange", false);
-    s7 += range<char*>("yelp", true, "zipper", true);
+    s7 += range<char*>("yesornoquestion", true, "zipper", true);
     assert(s7.contains("appstore"));
     assert(s7.contains("zawarudo"));
     assert(!s7.contains("run"));
