@@ -369,20 +369,17 @@ class range {
         return ((cmp.precedes(L, item) || (Linc && cmp.equals(L, item)))
             && (cmp.precedes(item, H) || (Hinc && cmp.equals(item, H))));
     }
-    bool precedes(const range<T, C>& other) const {
-        return (cmp.precedes(H, other.L) || ((cmp.equals(H, other.L) && !Hinc && !other.Linc)));
-    }
-    bool equals(const range<T, C>& other) const {
-        return cmp.equals(L, other.L) && cmp.equals(H, other.H) && (Linc == other.Linc) && (Hinc == other.Hinc);
-    }
     bool less(const T& item) {
         return (cmp.precedes(H, item)||(cmp.equals(H, item) && !Hinc));
     }
     bool greater(const T& item) {
         return (cmp.precedes(item, L) || (cmp.equals(L, item) && !Linc));
     }
-    bool includes (const T& item) const {
-        return ((cmp.precedes(L, item) && cmp.precedes(item, H)) || (cmp.equals(L, item) && Linc) || (cmp.equals(H, item) && Hinc));
+    bool precedes(const range<T, C>& other) const {
+        return (cmp.precedes(H, other.L) || ((cmp.equals(H, other.L) && !Hinc && !other.Linc)));
+    }
+    bool equals(const range<T, C>& other) const {
+        return cmp.equals(L, other.L) && cmp.equals(H, other.H) && (Linc == other.Linc) && (Hinc == other.Hinc);
     }
     // Check if there is overlap
     bool overlaps(const range<T, C>& other) const {
@@ -613,7 +610,7 @@ private:
     int bin_search(int lower, int upper, const T& item) const {
         if (lower >= upper) return -1;
         int idx = (upper - lower) / 2 + lower;
-        if (data[idx].includes(item)) {
+        if (data[idx].contains(item)) {
             return idx;
         }
         else if (data[idx].greater(item)) {
