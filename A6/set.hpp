@@ -674,7 +674,7 @@ public:
         // Clean up
         range<T, C>* newdata = new range<T, C>[maxsize];
         int newsize = 0;
-        for (int i = 0; i < maxsize; i++) {
+        for (int i = 0; i < currsize; i++) {
             if (data[i].low() < data[i].high()) {
                 newdata[newsize] = data[i];
                 newsize++;
