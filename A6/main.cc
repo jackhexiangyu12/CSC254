@@ -1,16 +1,6 @@
 #include "set.hpp"
 #include <assert.h>
 
-class double_cmp {
-    public:
-    bool precedes(double a, double b) const {
-        return a < b;
-    }
-    bool equals(double a, double b) const {
-        return a == b;
-    }
-};
-
 int main() {
 
     // Some miscellaneous code to get you started on testing your sets.
@@ -72,55 +62,54 @@ int main() {
     assert(s1.contains(15));
     assert(!s1.contains(50));
     assert(!s1.contains(51));
-
-    hashed_simple_set<int> s2(100);
-    s2 += 50;
-    s2 += 15;
-    s2 -= 50;
-    assert(s2.contains(15));
-    assert(!s2.contains(50));
-    assert(!s2.contains(51));
     
-    hashed_simple_set<char> s3(10);
-    s3 += 'a';
-    s3 += 'z';
-    s3 -= 'a';
-    assert(s3.contains('z'));
-    assert(!s3.contains('a'));
-    assert(!s3.contains('g'));
+    hashed_simple_set<char> s2(10);
+    s2 += 'a';
+    s2 += 'z';
+    s2 -= 'a';
+    assert(s2.contains('z'));
+    assert(!s2.contains('a'));
+    assert(!s2.contains('g'));
 
-    bin_search_simple_set<double, double_cmp> s4(10);
-    s4 += 3.14;
-    s4 += 5.3;
-    s4 -= 3.14;
-    assert(s4.contains(5.3));
-    assert(!s4.contains(1.5));
-    assert(!s4.contains(3.14));
+    bin_search_simple_set<double> s3(10);
+    s3 += 3.14;
+    s3 += 5.3;
+    s3 -= 3.14;
+    assert(s3.contains(5.3));
+    assert(!s3.contains(1.5));
+    assert(!s3.contains(3.14));
 
-    range_set<char>* s5 = new carray_range_set<char>('a', 'z');
-    *s5 += range<char>('m', true, 'p', false);
+    range_set<char>* s4 = new carray_range_set<char>('a', 'z');
+    *s4 += range<char>('m', true, 'p', false);
+    *s4 += range<char>('a', true, 'f', false);
+    *s4 -= range<char>('b', true, 'c', false);
+    assert(!s4->contains('y'));
+    assert(s4->contains('a'));
+    assert(!s4->contains('b'));
+
+    range_set<char>* s5 = new hashed_range_set<char>(30);
     *s5 += range<char>('a', true, 'f', false);
+    *s5 += range<char>('m', true, 'p', false);
     *s5 -= range<char>('b', true, 'c', false);
-    assert(!s5->contains('y'));
+    assert(!s5->contains('z'));
     assert(s5->contains('a'));
     assert(!s5->contains('b'));
 
-    range_set<char>* s6 = new hashed_range_set<char>(30);
-    *s6 += range<char>('a', true, 'f', false);
-    *s6 += range<char>('m', true, 'p', false);
-    *s6 -= range<char>('b', true, 'c', false);
-    assert(!s6->contains('z'));
-    assert(s6->contains('a'));
-    assert(!s6->contains('b'));
+    bin_search_range_set<double> s6(10);
+    s6 += range<double>(1.0, true, 3.0, true);
+    s6 += range<double>(7.0, true, 9.0, false);
+    s6 += range<double>(11.0, true, 13.0, true);
+    assert(!s6.contains(5.0));
+    assert(s6.contains(7.7));
+    assert(!s6.contains(9.0));
+    s6 -= range<double>(3, false, 8.8, false);
+    assert(!s6.contains(5.0));
+    assert(s6.contains(2.0));
 
-    bin_search_range_set<double, double_cmp> s7(10);
-    s7 += range<double, double_cmp>(1.0, true, 3.0, true);
-    s7 += range<double, double_cmp>(7.0, true, 9.0, false);
-    s7 += range<double, double_cmp>(11.0, true, 13.0, true);
-    assert(!s7.contains(5.0));
-    assert(s7.contains(7.7));
-    assert(!s7.contains(9.0));
-    s7 -= range<double, double_cmp>(3, false, 8.8, false);
-    assert(!s7.contains(5.0));
-    assert(s7.contains(2.0));
+    bin_search_range_set<char*> s7(10);
+    s7 += range<char*>("apple", true, "orange", false);
+    s7 += range<char*>("yelp", true, "zipper", true);
+    assert(s7.contains("appstore"));
+    assert(s7.contains("zawarudo"));
+    assert(!s7.contains("run"));
 }

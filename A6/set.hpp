@@ -34,6 +34,30 @@ class comp {
         return a == b;
     }
 };
+template<>
+class comp <char*>{
+  public:
+    bool precedes(char* a, char* b) const {
+        while (*a != '\0') {
+            if(*a != *b) {
+                return (*a - *b)<0;
+            }
+            a++;
+            b++;
+        }
+        return false;
+    }
+    bool equals(char* a, char* b) const {
+        while (*a != '\0') {
+            if(*a != *b) {
+                return false;
+            }
+            a++;
+            b++;
+        }
+        return true;
+    }
+};
 
 // Abstract base class from which all sets are derived.
 //
@@ -355,10 +379,10 @@ class range {
     bool equals(const range<T, C>& other) const {
         return cmp.equals(L, other.L) && cmp.equals(H, other.H) && (Linc == other.Linc) && (Hinc == other.Hinc);
     }
-    bool lessThan(const T& item) {
+    bool less(const T& item) {
         return (cmp.precedes(H, item)||(cmp.equals(H, item) && !Hinc));
     }
-    bool greaterThan(const T& item) {
+    bool greater(const T& item) {
         return (cmp.precedes(item, L) || (cmp.equals(L, item) && !Linc));
     }
     bool includes (const T& item) const {
@@ -414,14 +438,14 @@ class range {
             (cmp.equals(H, other.L) && Hinc)) {
             result[0] = range<T, C>(L, Linc, other.L, other.Linc);
         } else {
-            result[0] = range<T, C>(1, false, -1, false);
+            result[0] = range<T, C>((T)1, false, (T)-1, false);
         }
         if ((cmp.precedes(L, other.H) && cmp.precedes(other.H, H)) || 
             (cmp.equals(L, other.H) && Linc) || 
             (cmp.equals(H, other.H) && Hinc)) {
             result[1] = range<T, C>(other.H, other.Hinc, H, Hinc);
         } else {
-            result[1] = range<T, C>(1, false, -1, false);
+            result[1] = range<T, C>((T)1, false, (T)-1, false);
         }
         return result;
     }
@@ -596,11 +620,11 @@ private:
         if (data[idx].includes(item)) {
             return idx;
         }
-        else if (data[idx].greaterThan(item)) {
+        else if (data[idx].greater(item)) {
             if (idx == upper) return -1;
             return bin_search(lower, idx, item);
         }
-        else if (data[idx].lessThan(item)) {
+        else if (data[idx].less(item)) {
             if (idx == lower) return -1;
             return bin_search(idx, upper, item);
         }
@@ -652,7 +676,7 @@ public:
             if (data[i].overlaps(copyr)) {
                 hasOverlap = true;
                 copyr.merge(data[i]);
-                data[i] = range<T, C>(1, false, -1, false);
+                data[i] = range<T, C>((T)1, false, (T)-1, false);
             } else {
                 if (hasOverlap) {
                     idxOverlap = i;
@@ -675,7 +699,7 @@ public:
         range<T, C>* newdata = new range<T, C>[maxsize];
         int newsize = 0;
         for (int i = 0; i < currsize; i++) {
-            if (data[i].low() < data[i].high()) {
+            if (cmp.precedes(data[i].low(), data[i].high())) {
                 newdata[newsize] = data[i];
                 newsize++;
             }
@@ -695,11 +719,11 @@ public:
         for (int i = 0; i < currsize; i++) {
             if (data[i].overlaps(r)) {
                 range<T, C>* splits = data[i].split(r);
-                if (splits[0].low() < splits[0].high()) {
+                if (cmp.precedes(splits[0].low(), splits[0].high())) {
                     newdata[newsize] = splits[0];
                     newsize++;
                 }
-                if (splits[1].low() < splits[1].high()) {
+                if (cmp.precedes(splits[1].low(), splits[1].high())) {
                     newdata[newsize] = splits[1];
                     newsize++;
                 }
