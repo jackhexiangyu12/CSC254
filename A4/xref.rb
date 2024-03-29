@@ -100,7 +100,7 @@ addr_map.each { |key, table|
             file_content = Array.new
             file_content.push("")
             File.foreach(file_name).with_index { |line, line_num|
-                file_content.push(["<span class=\"nocode\">"+(line_num+1).to_s+"</span>", line, false])
+                # file_content.push(["<span class=\"nocode\">"+(line_num+1).to_s+"</span>", line, false])
             }
             file_all[file_name] = file_content
         end
@@ -180,7 +180,7 @@ addr_map.each { |key, table|
                 asm_tmp_split = asm_tmp.split(" ")
                 if asm_tmp_split[-1].include?("<")
                     asm_tmp_called_addr = asm_tmp_split[-2]
-                    asm_tmp = asm_tmp.sub(asm_tmp_called_addr, "<span class=\"nocode\"><a href=#asmline"+asm_tmp_called_addr+">"+asm_tmp_called_addr+"</a></span>")
+                    # asm_tmp = asm_tmp.sub(asm_tmp_called_addr, "<span class=\"nocode\"><a href=#asmline"+asm_tmp_called_addr+">"+asm_tmp_called_addr+"</a></span>")
                 end
 
                 asm_code << [j.to_s(16), asm_tmp + "\n", ]
@@ -266,22 +266,22 @@ template = %{
     </head>
     <body>
     <h2>xref for binary: <%= @exec_name %> </h2>
-    <a href=<%= "#asmline" + @func_map["main"] %>>main</a>
+    # <a href=<%= "#asmline" + @func_map["main"] %>>main</a>
     <% @code_blocks.each do |code_block| %>
         <div class="code-block">
             <div class="asm-block">
                 <span>~</span>
                 <pre class="prettyprint lang-c">
-<% code_block['asm'].each do |asm| %>
-<a name=<%= "asmline" + asm[0] %> href=<%= "#asmline" + asm[0] %>><%= asm[1].sub('\t', '</a>') %>
-<%end%></pre>
+    <% code_block['asm'].each do |asm| %>
+    # <a name=<%= "asmline" + asm[0] %> href=<%= "#asmline" + asm[0] %>><%= asm[1].sub('\t', '</a>') %>
+    <%end%></pre>
             </div>
             <div class="src-block">
                 <span><%= code_block['file_name'] %></span>
                 <pre class="prettyprint lang-c">
-<% code_block['src'].each do |src| %>
-<% if !src[2] %><%= src[0]+". "+src[1] %><% else %><span class="nocode"><font color="grey"><%= src[0] + ". " + src[1].sub("\n", "")%></font></span>\n<% end %>
-<% end %></pre>
+    <% code_block['src'].each do |src| %>
+    <% if !src[2] %><%= src[0]+". "+src[1] %><% else %><span class="nocode"><font color="grey"><%= src[0] + ". " + src[1].sub("\n", "")%></font></span>\n<% end %>
+    <% end %></pre>
             </div>
         </div>
     <% end %>
