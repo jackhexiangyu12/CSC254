@@ -100,7 +100,7 @@ addr_map.each { |key, table|
             file_content = Array.new
             file_content.push("")
             File.foreach(file_name).with_index { |line, line_num|
-                # file_content.push(["<span class=\"nocode\">"+(line_num+1).to_s+"</span>", line, false])
+                file_content.push(["<span class=\"nocode\">"+(line_num+1).to_s+"</span>", line, false])
             }
             file_all[file_name] = file_content
         end
@@ -113,7 +113,7 @@ addr_map_sorted = Hash.new
 
 addr_map.each { |key, table|
     table_sorted = table.sort_by{ |line| line[1].to_i(10)}
-    
+
     line_sorted = Array.new
     table_sorted.each{ |line| line_sorted.push(line[1].to_i(10))}
 
@@ -180,7 +180,7 @@ addr_map.each { |key, table|
                 asm_tmp_split = asm_tmp.split(" ")
                 if asm_tmp_split[-1].include?("<")
                     asm_tmp_called_addr = asm_tmp_split[-2]
-                    # asm_tmp = asm_tmp.sub(asm_tmp_called_addr, "<span class=\"nocode\"><a href=#asmline"+asm_tmp_called_addr+">"+asm_tmp_called_addr+"</a></span>")
+                    asm_tmp = asm_tmp.sub(asm_tmp_called_addr, "<span class=\"nocode\"><a href=#asmline"+asm_tmp_called_addr+">"+asm_tmp_called_addr+"</a></span>")
                 end
 
                 asm_code << [j.to_s(16), asm_tmp + "\n", ]
@@ -190,16 +190,16 @@ addr_map.each { |key, table|
         # Check if current src line is used or not
         for j in line_start..line_end
             src_code << [file_all[file_name][j][0], file_all[file_name][j][1], file_all[file_name][j][2]]
-            
+
             if !file_all[file_name][j][2]
                 file_all[file_name][j][2] = true
             end
         end
 
         content = {
-            "asm" => asm_code.compact,
-            "file_name" => file_name,
-            "src" => src_code.compact
+          "asm" => asm_code.compact,
+          "file_name" => file_name,
+          "src" => src_code.compact
         }
         code_map_asm[addr_start] = content
     end
@@ -218,9 +218,9 @@ class Product
 
     def add_code_block(asm, src, file_name)
         code_block = {
-            'asm' => asm,
-            'src' => src,
-            'file_name' => file_name
+          'asm' => asm,
+          'src' => src,
+          'file_name' => file_name
         }
         @code_blocks << code_block
     end
@@ -232,61 +232,61 @@ class Product
 end
 
 template = %{
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>xref for binary: <%= @exec_name %></title>
-    <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
-    <style>
-        .code-block {
-            display: table;
-            box-sizing: border-box;
-            position: relative;
-            table-layout: fixed;
-            width: 100%;
-        }
-        pre {
-            margin: 0;
-            overflow: auto;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-        .asm-block,
-        .src-block {
-            width: 50%;
-            display: table-cell;
-            vertical-align: top;
-        }
-        li.L0, li.L1, li.L2, li.L3,
-        li.L5, li.L6, li.L7, li.L8 {
-            list-style-type: decimal !important;
-        }
-    </style>
-</head>
-<body>
-<h2>xref for binary: <%= @exec_name %> </h2>
-
-<% @code_blocks.each do |code_block| %>
-<div class="code-block">
-    <div class="asm-block">
-        <span>~</span>
-        <pre class="prettyprint lang-c">
-    <% code_block['asm'].each do |asm| %>
-    <a name=<%="asmline" + asm[0] %> href=<%= "#asmline" + asm[0] %>><%= asm[1].sub('\t', '</a>') %>
-    <%end%></pre>
-    </div>
-    <div class="src-block">
-        <span><%= code_block['file_name'] %></span>
-        <pre class="prettyprint lang-c">
-    <% code_block['src'].each do |src| %>
-    <% if !src[2] %><%= src[0]+". "+src[1] %><% else %><span class="nocode"><font color="grey"><%= src[0] + ". " + src[1].sub("\n", "")%></font></span>\n<% end %>
-    <% end %></pre>
-    </div>
-</div>
-<% end %>
-</body>
-</html>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>xref for binary: <%= @exec_name %></title>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+        <style>
+            .code-block {
+                display: table;
+                box-sizing: border-box;
+                position: relative;
+                table-layout: fixed;
+                width: 100%;
+            }
+            pre {
+                margin: 0;
+                overflow: auto;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+            }
+            .asm-block,
+            .src-block {
+                width: 50%;
+                display: table-cell;
+                vertical-align: top;
+            }
+            li.L0, li.L1, li.L2, li.L3,
+            li.L5, li.L6, li.L7, li.L8 {
+                list-style-type: decimal !important;
+            }
+        </style>
+    </head>
+    <body>
+    <h2>xref for binary: <%= @exec_name %> </h2>
+    <a href=<%= "#asmline" + @func_map["main"] %>>main</a>
+    <% @code_blocks.each do |code_block| %>
+        <div class="code-block">
+            <div class="asm-block">
+                <span>~</span>
+                <pre class="prettyprint lang-c">
+<% code_block['asm'].each do |asm| %>
+<a name=<%= "asmline" + asm[0] %> href=<%= "#asmline" + asm[0] %>><%= asm[1].sub('\t', '</a>') %>
+<%end%></pre>
+            </div>
+            <div class="src-block">
+                <span><%= code_block['file_name'] %></span>
+                <pre class="prettyprint lang-c">
+<% code_block['src'].each do |src| %>
+<% if !src[2] %><%= src[0]+". "+src[1] %><% else %><span class="nocode"><font color="grey"><%= src[0] + ". " + src[1].sub("\n", "")%></font></span>\n<% end %>
+<% end %></pre>
+            </div>
+        </div>
+    <% end %>
+    </body>
+    </html>
 }.gsub(/^  /, '')
 
 rhtml = ERB.new(template, 0, '>')
