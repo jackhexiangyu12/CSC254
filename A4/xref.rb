@@ -232,61 +232,61 @@ class Product
 end
 
 template = %{
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>xref for binary: <%= @exec_name %></title>
-        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
-        <style>
-            .code-block {
-                display: table;
-                box-sizing: border-box;
-                position: relative;
-                table-layout: fixed;
-                width: 100%;
-            }
-            pre {
-                margin: 0;
-                overflow: auto;
-                white-space: pre-wrap;
-                word-wrap: break-word;
-            }
-            .asm-block,
-            .src-block {
-                width: 50%;
-                display: table-cell;
-                vertical-align: top;
-            }
-            li.L0, li.L1, li.L2, li.L3,
-            li.L5, li.L6, li.L7, li.L8 {
-                list-style-type: decimal !important;
-            }
-        </style>
-    </head>
-    <body>
-    <h2>xref for binary: <%= @exec_name %> </h2>
-    # <a href=<%= "#asmline" + @func_map["main"] %>>main</a>
-    <% @code_blocks.each do |code_block| %>
-        <div class="code-block">
-            <div class="asm-block">
-                <span>~</span>
-                <pre class="prettyprint lang-c">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>xref for binary: <%= @exec_name %></title>
+    <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+    <style>
+        .code-block {
+            display: table;
+            box-sizing: border-box;
+            position: relative;
+            table-layout: fixed;
+            width: 100%;
+        }
+        pre {
+            margin: 0;
+            overflow: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .asm-block,
+        .src-block {
+            width: 50%;
+            display: table-cell;
+            vertical-align: top;
+        }
+        li.L0, li.L1, li.L2, li.L3,
+        li.L5, li.L6, li.L7, li.L8 {
+            list-style-type: decimal !important;
+        }
+    </style>
+</head>
+<body>
+<h2>xref for binary: <%= @exec_name %> </h2>
+
+<% @code_blocks.each do |code_block| %>
+<div class="code-block">
+    <div class="asm-block">
+        <span>~</span>
+        <pre class="prettyprint lang-c">
     <% code_block['asm'].each do |asm| %>
-    # <a name=<%= "asmline" + asm[0] %> href=<%= "#asmline" + asm[0] %>><%= asm[1].sub('\t', '</a>') %>
+    <a name=<%="asmline" + asm[0] %> href=<%= "#asmline" + asm[0] %>><%= asm[1].sub('\t', '</a>') %>
     <%end%></pre>
-            </div>
-            <div class="src-block">
-                <span><%= code_block['file_name'] %></span>
-                <pre class="prettyprint lang-c">
+    </div>
+    <div class="src-block">
+        <span><%= code_block['file_name'] %></span>
+        <pre class="prettyprint lang-c">
     <% code_block['src'].each do |src| %>
     <% if !src[2] %><%= src[0]+". "+src[1] %><% else %><span class="nocode"><font color="grey"><%= src[0] + ". " + src[1].sub("\n", "")%></font></span>\n<% end %>
     <% end %></pre>
-            </div>
-        </div>
-    <% end %>
-    </body>
-    </html>
+    </div>
+</div>
+<% end %>
+</body>
+</html>
 }.gsub(/^  /, '')
 
 rhtml = ERB.new(template, 0, '>')
